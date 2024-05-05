@@ -6,6 +6,14 @@
 A collection of React components for working with the
 Umbraco [Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api).
 
+## Install
+
+Install the `@charlietango/react-umbraco` package with your package manager of choice.
+
+```sh
+npm install @charlietango/react-umbraco
+```
+
 ### `<UmbracoRichText>`
 
 Takes the rich text property from the Umbraco Content Delivery API and renders it with React.
