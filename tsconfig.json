@@ -2,9 +2,12 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext"],
+    "types": ["vitest/globals"],
     "module": "ESNext",
+    "jsx": "react-jsx",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
+    "noEmit": true,
     "strict": true,
     "strictNullChecks": true,
     "esModuleInterop": true,
