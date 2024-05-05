@@ -82,6 +82,6 @@ declare module '@charlietango/react-umbraco' {
 
 [npm-version-href]: https://npmjs.com/package/@charlietango/react-umbraco
 
-[license-src]: https://img.shields.io/github/license/charlietango/react-umbraco.svg?style=flat&colorA=080f12&colorB=1fa669
+[license-src]: https://img.shields.io/github/license/charlie-tango/react-umbraco.svg?style=flat&colorA=080f12&colorB=1fa669
 
-[license-href]: https://github.com/charlietango/react-umbraco/blob/main/LICENSE
+[license-href]: https://github.com/charlie-tango/react-umbraco/blob/main/LICENSE
