@@ -55,7 +55,11 @@ interface NodeMeta {
   next?: string;
 }
 
-type RenderNodeProps = {
+/**
+ * Props for rendering a single node in the rich text.
+ * A node is any HTML element that is part of the rich text.
+ */
+export type RenderNodeProps = {
   children?: React.ReactNode;
   meta: NodeMeta;
 } & (
@@ -74,10 +78,11 @@ type RenderNodeProps = {
 );
 
 interface RichTextProps {
-  element:
+  data:
     | {
         /** List as `string` so it matches generated type from Umbraco. In reality, the value of the root `tag` must be `#root` */
         tag: string;
+        attributes?: Record<string, unknown>;
         elements?: RichTextElementModel[];
         blocks?: Array<BlockItemModel>;
       }
@@ -214,7 +219,7 @@ function RichTextElement({
  * Component for rendering a rich text component
  */
 export function UmbracoRichText(props: RichTextProps) {
-  const rootElement = props.element;
+  const rootElement = props.data;
   if (rootElement?.tag === "#root" && rootElement.elements) {
     return (
       <>
