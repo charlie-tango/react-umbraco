@@ -7,13 +7,12 @@
   "description": "",
   "author": "Charlie Tango",
   "license": "MIT",
-  "funding": "https://github.com/sponsors/charlietango",
-  "homepage": "https://github.com/charlietango/react-umbraco#readme",
+  "homepage": "https://github.com/charlie-tango/react-umbraco#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/charlietango/react-umbraco.git"
+    "url": "git+https://github.com/charlie-tango/react-umbraco.git"
   },
-  "bugs": "https://github.com/charlietango/react-umbraco/issues",
+  "bugs": "https://github.com/charlie-tango/react-umbraco/issues",
   "keywords": ["umbraco", "react", "content delivery api", "headless cms"],
   "sideEffects": false,
   "exports": {
