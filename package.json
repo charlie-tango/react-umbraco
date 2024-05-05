@@ -14,7 +14,7 @@
     "url": "git+https://github.com/charlietango/react-umbraco.git"
   },
   "bugs": "https://github.com/charlietango/react-umbraco/issues",
-  "keywords": [],
+  "keywords": ["umbraco", "react", "content delivery api", "headless cms"],
   "sideEffects": false,
   "exports": {
     ".": {
@@ -56,7 +56,7 @@
     "bumpp": "^9.4.1",
     "happy-dom": "^14.7.1",
     "lint-staged": "^15.2.2",
-    "pnpm": "^9.0.6",
+    "prettier": "^3.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "rimraf": "^5.0.5",
@@ -72,6 +72,7 @@
   "lint-staged": {
     "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
       "biome check --apply --no-errors-on-unmatched"
-    ]
+    ],
+    "*.md": ["prettier --write"]
   }
 }

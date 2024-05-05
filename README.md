@@ -26,31 +26,31 @@ Takes the rich text property from the Umbraco Content Delivery API and renders i
 
 ```tsx
 import { UmbracoRichText } from "@charlietango/react-umbraco";
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from "next/image";
+import Link from "next/link";
 
 const MyComponent = ({ data }) => {
-    return (
-        <UmbracoRichText
-            element={data.richText}
-            renderNode={({ tag, children, attributes }) => {
-                switch (tag) {
-                    case "a":
-                        return <Link {...attributes}>{children}</Link>;
-                    default:
-                        return undefined;
-                }
-            }}
-            renderBlock={({ content }) => {
-                switch (content?.contentType) {
-                    case "imageBlock":
-                        return <Image {...content.properties} />;
-                    default:
-                        return null;
-                }
-            }}
-        />
-    );
+  return (
+    <UmbracoRichText
+      element={data.richText}
+      renderNode={({ tag, children, attributes }) => {
+        switch (tag) {
+          case "a":
+            return <Link {...attributes}>{children}</Link>;
+          default:
+            return undefined;
+        }
+      }}
+      renderBlock={({ content }) => {
+        switch (content?.contentType) {
+          case "imageBlock":
+            return <Image {...content.properties} />;
+          default:
+            return null;
+        }
+      }}
+    />
+  );
 };
 ```
 
@@ -65,23 +65,19 @@ for `ApiBlockItemModel`.
 **types/react-umbraco.d.ts**
 
 ```ts
-import {components} from '@/openapi/umbraco';
+import { components } from "@/openapi/umbraco";
 
 // Define the intermediate interface
-type ApiBlockItemModel = components['schemas']['ApiBlockItemModel'];
+type ApiBlockItemModel = components["schemas"]["ApiBlockItemModel"];
 
-declare module '@charlietango/react-umbraco' {
-    interface UmbracoBlockItemModel extends ApiBlockItemModel {
-    }
+declare module "@charlietango/react-umbraco" {
+  interface UmbracoBlockItemModel extends ApiBlockItemModel {}
 }
 ```
 
 <!-- Badges -->
 
 [npm-version-src]: https://img.shields.io/npm/v/@charlietango/react-umbraco?style=flat&colorA=080f12&colorB=1fa669
-
 [npm-version-href]: https://npmjs.com/package/@charlietango/react-umbraco
-
 [license-src]: https://img.shields.io/github/license/charlie-tango/react-umbraco.svg?style=flat&colorA=080f12&colorB=1fa669
-
 [license-href]: https://github.com/charlie-tango/react-umbraco/blob/main/LICENSE
