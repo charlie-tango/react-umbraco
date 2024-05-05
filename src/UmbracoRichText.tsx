@@ -36,7 +36,10 @@ interface BaseBlockItemModel {
  */
 export type UmbracoBlockItemModel = {};
 
-type BlockItemModel = Overwrite<BaseBlockItemModel, UmbracoBlockItemModel>;
+export type RenderBlockContext = Overwrite<
+  BaseBlockItemModel,
+  UmbracoBlockItemModel
+>;
 
 interface RouteAttributes {
   path: string;
@@ -59,7 +62,7 @@ interface NodeMeta {
  * Props for rendering a single node in the rich text.
  * A node is any HTML element that is part of the rich text.
  */
-export type RenderNodeProps = {
+export type RenderNodeContext = {
   children?: React.ReactNode;
   meta: NodeMeta;
 } & (
@@ -84,16 +87,16 @@ interface RichTextProps {
         tag: string;
         attributes?: Record<string, unknown>;
         elements?: RichTextElementModel[];
-        blocks?: Array<BlockItemModel>;
+        blocks?: Array<RenderBlockContext>;
       }
     | undefined;
-  renderBlock?: (block: BlockItemModel) => React.ReactNode;
+  renderBlock?: (block: RenderBlockContext) => React.ReactNode;
   /**
    * Render an HTML node with custom logic.
    * @param node
    * @returns A React node, `null` to render nothing, or `undefined` to fallback to the default element
    */
-  renderNode?: (node: RenderNodeProps) => React.ReactNode | undefined;
+  renderNode?: (node: RenderNodeContext) => React.ReactNode | undefined;
 }
 
 type RichTextElementModel =
@@ -129,7 +132,7 @@ function RichTextElement({
   meta,
 }: {
   element: RichTextElementModel;
-  blocks: Array<BlockItemModel> | undefined;
+  blocks: Array<RenderBlockContext> | undefined;
   meta:
     | {
         ancestor?: string;

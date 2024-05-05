@@ -3,12 +3,13 @@
 [![npm version][npm-version-src]][npm-version-href]
 [![License][license-src]][license-href]
 
-A collection of React components for working with the
-Umbraco [Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api).
+A collection of React components for working with the Umbraco
+[Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api).
 
 ## Install
 
-Install the `@charlietango/react-umbraco` package with your package manager of choice.
+Install the `@charlietango/react-umbraco` package with your package manager of
+choice.
 
 ```sh
 npm install @charlietango/react-umbraco
@@ -16,51 +17,78 @@ npm install @charlietango/react-umbraco
 
 ### `<UmbracoRichText>`
 
-Takes the rich text property from the Umbraco Content Delivery API and renders it with React.
+Takes the rich text property from the Umbraco Content Delivery API and renders
+it with React.
 
 ### Props
 
 - `element`: The rich text property from the Umbraco Content Delivery API.
 - `renderBlock`: Render a specific block type.
-- `renderNode`: Overwrite the default rendering of a node. Return `undefined` to render the default node. Return `null` to skip rendering the node.
+- `renderNode`: Overwrite the default rendering of a node. Return `undefined` to
+  render the default node. Return `null` to skip rendering the node.
+
+When passing the `renderBlock` and `renderNode` props, consider making them
+static functions (move them outside the consuming component) to avoid
+unnecessary re-renders.
 
 ```tsx
-import { UmbracoRichText } from "@charlietango/react-umbraco";
+import {
+  UmbracoRichText,
+  RenderBlockContext,
+  RenderNodeContext,
+} from "@charlietango/react-umbraco";
 import Image from "next/image";
 import Link from "next/link";
 
-const MyComponent = ({ data }) => {
+function renderNode({ tag, children, attributes }: RenderNodeContext) {
+  switch (tag) {
+    case "a":
+      return <Link {...attributes}>{children}</Link>;
+    case "p":
+      return (
+        <p className="text-lg" {...attributes}>
+          {children}
+        </p>
+      );
+    default:
+      // Return `undefined` to render the default HTML node
+      return undefined;
+  }
+}
+
+function renderBlock({ content }: RenderBlockContext) {
+  switch (content?.contentType) {
+    // Switch over your Umbraco document types that can be rendered in the Rich Text blocks
+    case "imageBlock":
+      return <Image {...content.properties} />;
+    default:
+      return null;
+  }
+}
+
+function RichText({ data }) {
   return (
     <UmbracoRichText
       element={data.richText}
-      renderNode={({ tag, children, attributes }) => {
-        switch (tag) {
-          case "a":
-            return <Link {...attributes}>{children}</Link>;
-          default:
-            return undefined;
-        }
-      }}
-      renderBlock={({ content }) => {
-        switch (content?.contentType) {
-          case "imageBlock":
-            return <Image {...content.properties} />;
-          default:
-            return null;
-        }
-      }}
+      renderNode={renderNode}
+      renderBlock={renderBlock}
     />
   );
-};
+}
 ```
 
 #### Blocks
 
-You can augment the `renderBlock` method with the generated OpenAPI types for the Umbraco Content Delivery API.
-That way you can correctly filter the blocks you are rendering, based on the `contentType`, and get the
-associated `properties`.
-Create `types/react-umbraco.d.ts`, and augment the `UmbracoBlockItemModel` interface with your applications definition
-for `ApiBlockItemModel`.
+You can augment the `renderBlock` method with the generated OpenAPI types from
+Umbraco Content Delivery API. That way you can correctly filter the blocks you
+are rendering, based on the `contentType`, and get the associated `properties`.
+Create `types/react-umbraco.d.ts`, and augment the `UmbracoBlockItemModel`
+interface with your applications definition for `ApiBlockItemModel`.
+
+To generate the types, you'll want to use the
+[Delivery Api Extensions](https://marketplace.umbraco.com/package/umbraco.community.deliveryapiextensions)
+package, alongside a tool to generate the types from the OpenAPI schema, like
+[openapi-typescript](https://openapi-ts.pages.dev/).
 
 **types/react-umbraco.d.ts**
 
@@ -77,7 +105,9 @@ declare module "@charlietango/react-umbraco" {
 
 <!-- Badges -->
 
-[npm-version-src]: https://img.shields.io/npm/v/@charlietango/react-umbraco?style=flat&colorA=080f12&colorB=1fa669
+[npm-version-src]:
+  https://img.shields.io/npm/v/@charlietango/react-umbraco?style=flat&colorA=080f12&colorB=1fa669
 [npm-version-href]: https://npmjs.com/package/@charlietango/react-umbraco
-[license-src]: https://img.shields.io/github/license/charlie-tango/react-umbraco.svg?style=flat&colorA=080f12&colorB=1fa669
+[license-src]:
+  https://img.shields.io/github/license/charlie-tango/react-umbraco.svg?style=flat&colorA=080f12&colorB=1fa669
 [license-href]: https://github.com/charlie-tango/react-umbraco/blob/main/LICENSE

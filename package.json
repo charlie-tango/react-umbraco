@@ -73,5 +73,9 @@
       "biome check --apply --no-errors-on-unmatched"
     ],
     "*.md": ["prettier --write"]
+  },
+  "prettier": {
+    "proseWrap": "always",
+    "printWidth": 80
   }
 }
