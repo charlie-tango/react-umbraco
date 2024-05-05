@@ -33,9 +33,6 @@ importers:
       lint-staged:
         specifier: ^15.2.2
         version: 15.2.2
-      pnpm:
-        specifier: ^9.0.6
-        version: 9.0.6
       prettier:
         specifier: ^3.2.5
         version: 3.2.5
@@ -1505,11 +1502,6 @@ packages:
 
   pkg-types@1.1.0:
     resolution: {integrity: sha512-/RpmvKdxKf8uILTtoOhAgf30wYbP2Qw+L9p3Rvshx1JZVX+XQNZQFjlbmGHEGIm4CkVPlSn+NXmIM8+9oWQaSA==}
-
-  pnpm@9.0.6:
-    resolution: {integrity: sha512-9thjEwlzIHy3ozbWtDmiQqJqyAaAd99TDWqGBpQZhT3B/+ZAKexZSpxQWjpBDRlkPIcKumd2Mw9c/dzxCpwWFw==}
-    engines: {node: '>=18.12'}
-    hasBin: true
 
   postcss@8.4.38:
     resolution: {integrity: sha512-Wglpdk03BSfXkHoQa3b/oulrotAkwrlLDRSOb9D0bN86FdRyE9lppSp33aHNPgBa0JKCoB+drFLZkQoRRYae5A==}
@@ -3153,8 +3145,6 @@ snapshots:
       confbox: 0.1.7
       mlly: 1.7.0
       pathe: 1.1.2
-
-  pnpm@9.0.6: {}
 
   postcss@8.4.38:
     dependencies:
