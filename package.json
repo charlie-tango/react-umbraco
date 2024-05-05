@@ -36,7 +36,7 @@
     "build": "unbuild",
     "dev": "unbuild --stub",
     "lint": "biome check .",
-    "prepublishOnly": "nr build",
+    "prepublishOnly": "pnpm build",
     "release": "bumpp && npm publish",
     "test": "vitest",
     "typecheck": "tsc --noEmit",

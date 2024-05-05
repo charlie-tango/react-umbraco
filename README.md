@@ -5,7 +5,12 @@
 [![bundle][bundle-src]][bundle-href]
 [![License][license-src]][license-href]
 
-## License
+A collection of React components for working with the Umbraco [Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api).
+
+### `<UmbracoRichText>` component
+
+A component that can consume the Rich Text JSON, and render it as React elements.
+
 
 <!-- Badges -->
 
