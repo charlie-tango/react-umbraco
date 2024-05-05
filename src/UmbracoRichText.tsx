@@ -1,6 +1,6 @@
 import { decode } from "html-entities";
 import React from "react";
-import type { Overwrite } from "./types/helpers";
+import type { Overwrite } from "./utils/helper-types";
 import { parseStyle } from "./utils/parse-style";
 
 interface BaseBlockItemModel {

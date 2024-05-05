@@ -19,7 +19,7 @@
   },
   "linter": {
     "enabled": true,
-    "ignore": ["src/types/**"],
+    "ignore": ["src/utils/helper-types.ts"],
     "rules": {
       "recommended": true,
       "complexity": {
