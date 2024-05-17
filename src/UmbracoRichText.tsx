@@ -99,7 +99,7 @@ interface RichTextProps {
   renderNode?: (node: RenderNodeContext) => React.ReactNode | undefined;
 }
 
-type RichTextElementModel =
+export type RichTextElementModel =
   | {
       tag: "#text";
       text: string;
@@ -171,8 +171,8 @@ function RichTextElement({
     if (renderBlock && block) {
       return renderBlock(block);
     }
-    if (!renderBlock) {
-      console.error(
+    if (typeof renderBlock !== "function") {
+      throw new Error(
         "No renderBlock function provided for rich text block. Unable to render block.",
       );
     }
