@@ -241,9 +241,9 @@ it("should render default node if renderNode prop returns undefined", () => {
 });
 
 it("should render fixture content correctly", () => {
-  // biome-ignore lint/suspicious/noExplicitAny:
   const container = render(
     <UmbracoRichText
+      // biome-ignore lint/suspicious/noExplicitAny:
       data={fixture as any}
       renderBlock={() => <div data-testid="block" />}
     />,
