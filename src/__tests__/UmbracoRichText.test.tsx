@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { render, screen } from "@testing-library/react";
 import { type RichTextElementModel, UmbracoRichText } from "../UmbracoRichText";
+import fixture from "./__fixtures__/UmbracoRichText.fixture.json";
 
 /**
  * Creates nested RichTextElementModel objects with the given tags.
@@ -237,4 +238,15 @@ it("should render default node if renderNode prop returns undefined", () => {
     />,
   );
   expect(screen.queryByTestId("default-rendering")).not.toBeNull();
+});
+
+it("should render fixture content correctly", () => {
+  const container = render(
+    <UmbracoRichText
+      // biome-ignore lint/suspicious/noExplicitAny:
+      data={fixture as any}
+      renderBlock={() => <div data-testid="block" />}
+    />,
+  );
+  expect(container).toMatchSnapshot();
 });
