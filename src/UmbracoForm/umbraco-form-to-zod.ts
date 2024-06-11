@@ -49,6 +49,9 @@ export function mapFieldToZod(
       DefaultFieldType.FileUpload,
       DefaultFieldType.DropdownList,
       DefaultFieldType.SingleChoice,
+      DefaultFieldType.RichText,
+      DefaultFieldType.Password,
+      DefaultFieldType.HiddenField,
       () => {
         zodType = z.string({
           required_error: field?.requiredErrorMessage,
@@ -264,9 +267,9 @@ function isZodArrayType(def: z.ZodTypeAny): def is z.ZodArray<z.ZodTypeAny> {
   return false;
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: allow for loose typing when processing the zod type
 function processDef(
   def: z.ZodTypeAny,
+  // biome-ignore lint/suspicious/noExplicitAny: allow for loose typing when processing the zod type
   o: any,
   key: string,
   value: string | string[],
@@ -315,9 +318,9 @@ function processDef(
   }
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: allow for loose typing when processing the zod type
 function parseParams(
   o: Record<string, unknown>,
+  // biome-ignore lint/suspicious/noExplicitAny: allow for loose typing when processing the zod type
   schema: any,
   key: string,
   value: string | string[] | FormDataEntryValue | FormDataEntryValue[],

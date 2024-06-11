@@ -157,8 +157,8 @@ export interface FormFieldTypeDto
  * @see https://docs.umbraco.com/umbraco-forms/developer/configuration/type-details#field-types */
 export interface FormFieldDto
   extends Omit<components["schemas"]["FormFieldDto"], "type" | "settings"> {
-  type: FormFieldTypeDto;
-  settings: FieldSettings[DefaultFieldType];
+  type: FormFieldTypeDto | { id: string; name: string };
+  settings: FieldSettings[DefaultFieldType] | Record<string, string>;
 }
 
 /** Form condition

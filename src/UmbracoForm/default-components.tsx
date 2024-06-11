@@ -217,7 +217,7 @@ export function FieldType({
     ...rest,
   };
 
-  return match(field?.type?.id)
+  return match(field?.type?.id as DefaultFieldType)
     .with(
       DefaultFieldType.ShortAnswer,
       DefaultFieldType.Checkbox,
