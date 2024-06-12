@@ -70,8 +70,9 @@ export function getAllFields(form: FormDto): FormFieldDto[] {
  */
 export function getFieldById(
   form: FormDto,
-  id: string,
+  id?: string,
 ): FormFieldDto | undefined {
+  if (!id) return undefined;
   if (cachedFieldsById.has(form)) {
     return cachedFieldsById.get(form)?.get(id);
   }

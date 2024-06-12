@@ -1,8 +1,11 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+import { isConditionFulfilled } from "./conditions";
 import {
   filterFieldsByConditions,
   getAllFields,
+  getFieldByAlias,
+  getFieldById,
   getFieldByZodIssue,
 } from "./field-utils";
 import { DefaultFieldType, type FormDto, type FormFieldDto } from "./types";
@@ -16,23 +19,109 @@ export function umbracoFormToZod(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ) {
-  const fields = getAllFields(form);
+  const fields = getAllFields(form).filter(
+    (field) => field.id !== DefaultFieldType.TitleAndDescription,
+  );
 
-  const mappedFields = fields?.reduce<Record<string, z.ZodTypeAny>>(
-    (acc, field) => {
-      if (!field?.alias) return acc;
-      // skip title and description fields as they are presentation only and do not need to be validated
-      if (field?.type?.id === DefaultFieldType.TitleAndDescription) return acc;
-      acc[field.alias] = mapFieldToZod(field, mapCustomFieldToZodType);
+  const dependentFields = fields.filter(
+    (field) => field?.condition?.rules && field?.condition?.rules.length > 0,
+  );
+
+  const groupedDependentFieldIds = dependentFields
+    ?.map((field) => {
+      return [
+        field?.id,
+        ...(field?.condition?.rules?.map((rule) => rule?.field) ?? []),
+      ];
+    })
+    .reduce<(string | undefined)[][]>((acc, group, index, allGroups) => {
+      // check if any of the groups overlap
+      const overlappingGroups = allGroups.filter((otherGroup) =>
+        otherGroup.some((val) => group.includes(val)),
+      );
+
+      if (overlappingGroups) {
+        // merge overlapping groups
+        const mergedGroup = [...new Set(overlappingGroups.flat())];
+
+        // if merged group already exists, skip
+        if (
+          acc.some((existingGroup) =>
+            existingGroup.every((val, index) => val === mergedGroup[index]),
+          )
+        )
+          return acc;
+
+        acc.push(mergedGroup);
+        return acc;
+      }
+
+      acc.push(group);
       return acc;
-    },
-    {},
+    }, []);
+
+  const independentFields = fields?.filter((fields) =>
+    groupedDependentFieldIds.some(
+      (group) => group.includes(fields.id) === false,
+    ),
+  );
+  const groupedFields = groupedDependentFieldIds.map((group) =>
+    group.map((fieldId) => getFieldById(form, fieldId)),
   );
 
-  return z.object({ ...mappedFields }).transform((value) =>
-    // don't validate form fields that are not visible due to condition somewhere in the form definition
-    omitFieldsBasedOnConditionFromData(form, value, mapCustomFieldToZodType),
-  );
+  const intermediarySchema: Record<string, z.ZodTypeAny> = {};
+  for (const field of independentFields) {
+    if (!field?.alias) continue;
+    intermediarySchema[field.alias] = mapFieldToZod(
+      field,
+      mapCustomFieldToZodType,
+    );
+  }
+
+  const groupSchemas = [];
+  for (const group of groupedFields) {
+    const groupSchema: Record<string, z.ZodTypeAny> = {};
+    for (const field of group) {
+      if (!field?.alias) continue;
+      groupSchema[field.alias] = mapFieldToZod(field, mapCustomFieldToZodType);
+    }
+    const refinedGroup = z.object(groupSchema).superRefine((value, ctx) => {
+      const aliases = Object.keys(value);
+      for (const alias of aliases) {
+        const field = getFieldByAlias(form, alias) as FormFieldDto;
+        const conditionFulfilled = isConditionFulfilled(
+          field,
+          form,
+          value,
+          mapCustomFieldToZodType,
+        );
+        if (
+          field?.required &&
+          field?.condition?.actionType === "Show" &&
+          conditionFulfilled
+        ) {
+          if (!value[alias]) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.invalid_type,
+              path: [alias],
+              fatal: true,
+              message: field?.requiredErrorMessage,
+            } as z.ZodIssue);
+          }
+        }
+      }
+    });
+
+    groupSchemas.push(refinedGroup);
+  }
+
+  let finalSchema: z.ZodTypeAny = z.object(intermediarySchema);
+
+  for (const groupSchema of groupSchemas) {
+    finalSchema = z.intersection(groupSchema, finalSchema);
+  }
+
+  return finalSchema;
 }
 
 /** map umbraco form fields to zod type */
@@ -41,6 +130,9 @@ export function mapFieldToZod(
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): z.ZodTypeAny {
   let zodType: z.ZodType | undefined = undefined;
+
+  const hasCondition =
+    field?.condition?.rules && field?.condition?.rules.length > 0;
 
   match(field?.type?.id.toLowerCase())
     .with(
@@ -57,7 +149,7 @@ export function mapFieldToZod(
           required_error: field?.requiredErrorMessage,
           coerce: true,
         });
-        if (field?.required) {
+        if (field?.required && !hasCondition) {
           zodType = (zodType as z.ZodString).min(
             1,
             field?.requiredErrorMessage,
@@ -87,7 +179,7 @@ export function mapFieldToZod(
       }
     })
     .with(DefaultFieldType.Date, () => {
-      zodType = z.date();
+      zodType = z.date({ coerce: true });
     })
     .with(
       DefaultFieldType.Checkbox,
@@ -98,7 +190,7 @@ export function mapFieldToZod(
         zodType = z.boolean({
           coerce: true,
         });
-        if (field?.required) {
+        if (field?.required && !hasCondition) {
           zodType = zodType.refine((value) => value === true, {
             message: field?.requiredErrorMessage,
           });
@@ -123,7 +215,7 @@ export function mapFieldToZod(
       `Mapped zod type is undefined for field: ${field?.type?.name} (${field?.type?.id})`,
     );
 
-  if (!field?.required) {
+  if (!field?.required || hasCondition) {
     zodType = (zodType as z.ZodType).optional();
   }
 
@@ -241,7 +333,7 @@ export function coerceRuleValue(def: z.ZodTypeAny, value: unknown) {
 }
 
 /** recursively find the base definition for a given ZodType */
-function findBaseDef<R extends z.ZodTypeAny>(def: z.ZodTypeAny) {
+export function findBaseDef<R extends z.ZodTypeAny>(def: z.ZodTypeAny) {
   if (def instanceof z.ZodOptional || def instanceof z.ZodDefault) {
     return findBaseDef(def._def.innerType);
   }

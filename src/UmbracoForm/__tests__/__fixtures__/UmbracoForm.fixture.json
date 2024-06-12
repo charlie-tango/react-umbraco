@@ -111,7 +111,13 @@
                   "condition": {
                     "actionType": "Show",
                     "logicType": "All",
-                    "rules": []
+                    "rules": [
+                      {
+                        "field": "6ce0cf78-5102-47c1-85c6-9530d9e9c6a6",
+                        "operator": "Is",
+                        "value": "on"
+                      }
+                    ]
                   },
                   "helpText": "",
                   "id": "8d723100-ec34-412f-aaa5-516634d7c833",
@@ -272,11 +278,6 @@
                         "field": "6ce0cf78-5102-47c1-85c6-9530d9e9c6a6",
                         "operator": "Is",
                         "value": "on"
-                      },
-                      {
-                        "field": "8d723100-ec34-412f-aaa5-516634d7c833",
-                        "operator": "GreaterThen",
-                        "value": "2022-01-01"
                       }
                     ]
                   },
