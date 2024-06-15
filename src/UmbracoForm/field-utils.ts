@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import type { z } from "zod";
-import { isConditionFulfilled } from "./conditions";
+import { isVisibleBasedOnCondition } from "./conditions";
 import type {
   DtoWithCondition,
   FieldSettings,
@@ -141,7 +141,7 @@ export function filterFieldsByConditions(
 ): FormFieldDto[] {
   const checkCondition = (dto?: DtoWithCondition) =>
     dto
-      ? isConditionFulfilled(dto, form, data, mapCustomFieldToZodType)
+      ? isVisibleBasedOnCondition(dto, form, data, mapCustomFieldToZodType)
       : false;
 
   return form?.pages

@@ -20,7 +20,7 @@ import {
  * @param {MapFormFieldToZodFn} [mapCustomFieldToZodType] - Optional function to map custom fields to Zod types.
  * @returns {boolean} - Returns `true` if the condition is fulfilled, otherwise `false`.
  */
-export function isConditionFulfilled(
+export function isVisibleBasedOnCondition(
   dto: DtoWithCondition,
   form: FormDto,
   data: Record<string, unknown>,
@@ -67,7 +67,7 @@ export function areAllRulesFulfilled(
     const operator = rule?.operator as FieldConditionRuleOperator;
     const targetField = getFieldById(form, rule.field);
     if (targetField === undefined || targetField.alias === undefined) {
-      throw new TypeError(
+      throw new Error(
         `Rule target for field id: "${rule.field}" could not be found in the form definition`,
       );
     }

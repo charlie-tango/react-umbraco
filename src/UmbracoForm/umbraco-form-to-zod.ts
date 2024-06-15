@@ -1,6 +1,6 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
-import { isConditionFulfilled } from "./conditions";
+import { isVisibleBasedOnCondition } from "./conditions";
 import {
   filterFieldsByConditions,
   getAllFields,
@@ -89,7 +89,7 @@ export function umbracoFormToZod(
       const aliases = Object.keys(value);
       for (const alias of aliases) {
         const field = getFieldByAlias(form, alias) as FormFieldDto;
-        const conditionFulfilled = isConditionFulfilled(
+        const conditionFulfilled = isVisibleBasedOnCondition(
           field,
           form,
           value,

@@ -6,7 +6,7 @@ import {
   useTransition,
 } from "react";
 import type { ZodIssue } from "zod";
-import { isConditionFulfilled } from "./conditions";
+import { isVisibleBasedOnCondition } from "./conditions";
 import * as defaultComponents from "./default-components";
 import {
   filterFieldsByConditions,
@@ -84,7 +84,7 @@ function UmbracoForm(props: UmbracoFormProps) {
   const [currentPage, setCurrentPage] = useState(0);
 
   const checkCondition = (dto: DtoWithCondition) =>
-    isConditionFulfilled(
+    isVisibleBasedOnCondition(
       dto,
       form,
       deferredInternalData,
@@ -419,6 +419,6 @@ UmbracoForm.Field = defaultComponents.Field;
 UmbracoForm.SubmitButton = defaultComponents.SubmitButton;
 UmbracoForm.ValidationSummary = defaultComponents.ValidationSummary;
 
-export { umbracoFormToZod, coerceFormData };
+export { umbracoFormToZod, coerceFormData, UmbracoForm };
 export type * from "./types";
 export default UmbracoForm;
