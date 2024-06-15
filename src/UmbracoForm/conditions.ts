@@ -1,3 +1,4 @@
+import z from "zod";
 import { getFieldById } from "./field-utils";
 import type {
   DtoWithCondition,
@@ -33,6 +34,7 @@ export function isVisibleBasedOnCondition(
     data,
     mapCustomFieldToZodType,
   );
+
   return dto?.condition?.actionType === "Show"
     ? isFulfilled
     : dto?.condition?.actionType === "Hide"
@@ -81,11 +83,11 @@ export function areAllRulesFulfilled(
   });
 
   if (dto.condition?.logicType === "All") {
-    return appliedRules.every((rule) => rule);
+    return appliedRules.every((rule) => rule === true);
   }
 
   if (dto.condition?.logicType === "Any") {
-    return appliedRules.some((rule) => rule);
+    return appliedRules.some((rule) => rule === true);
   }
 
   return true;
@@ -132,7 +134,7 @@ function lessThan(value: unknown, rule: unknown) {
 }
 
 export function is(value: unknown, rule: unknown) {
-  return value?.toString() === rule?.toString();
+  return value === rule;
 }
 
 function contains(value: unknown, rule: unknown) {

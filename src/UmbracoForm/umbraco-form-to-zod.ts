@@ -7,7 +7,12 @@ import {
   getFieldByAlias,
   getFieldByZodIssue,
 } from "./field-utils";
-import { DefaultFieldType, type FormDto, type FormFieldDto } from "./types";
+import {
+  DefaultFieldType,
+  type FormDto,
+  type FormFieldDto,
+  type UmbracoFormSchema,
+} from "./types";
 
 /** convert a form field definition to a zod type */
 export type MapFormFieldToZodFn = (field?: FormFieldDto) => z.ZodTypeAny;
@@ -17,7 +22,7 @@ export type MapFormFieldToZodFn = (field?: FormFieldDto) => z.ZodTypeAny;
 export function umbracoFormToZod(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
-) {
+): UmbracoFormSchema {
   const fields = getAllFields(form).filter(
     (field) => field.id !== DefaultFieldType.TitleAndDescription,
   );
@@ -39,7 +44,7 @@ export function umbracoFormToZod(
     {},
   );
 
-  return z.object(mappedFields).superRefine((value, ctx) => {
+  const schema = z.object(mappedFields).superRefine((value, ctx) => {
     for (const alias of dependentFieldAliases) {
       const field = getFieldByAlias(form, alias) as FormFieldDto;
       const isVisible = isVisibleBasedOnCondition(
@@ -60,6 +65,8 @@ export function umbracoFormToZod(
       }
     }
   });
+
+  return schema as UmbracoFormSchema;
 }
 
 /** map umbraco form fields to zod type */
@@ -206,7 +213,7 @@ export function omitFieldsBasedOnConditionFromData(
 /** coerces form data to a zod schema format */
 export function coerceFormData(
   formData: FormData | undefined,
-  schema: z.ZodSchema,
+  schema: UmbracoFormSchema,
 ): Record<string, unknown> {
   const output = {};
 
@@ -315,11 +322,7 @@ function processDef(
     parsedValue = Number.isNaN(date) ? value : new Date(date);
   } else if (def instanceof z.ZodBoolean) {
     parsedValue =
-      value === "true" || value === ""
-        ? true
-        : value === "false"
-          ? false
-          : Boolean(value);
+      value === "true" ? true : value === "false" ? false : Boolean(value);
   } else if (def instanceof z.ZodNativeEnum || def instanceof z.ZodEnum) {
     parsedValue = value;
   } else if (def instanceof z.ZodOptional || def instanceof z.ZodDefault) {

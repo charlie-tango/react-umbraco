@@ -310,7 +310,7 @@ export function NextButton(
     return null;
   }
   return (
-    <button type="button" {...rest}>
+    <button type="submit" {...rest}>
       {form.nextLabel}
     </button>
   );

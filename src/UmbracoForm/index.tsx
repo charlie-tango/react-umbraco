@@ -1,10 +1,4 @@
-import {
-  Fragment,
-  useCallback,
-  useDeferredValue,
-  useState,
-  useTransition,
-} from "react";
+import { Fragment, useCallback, useState, useTransition } from "react";
 import type { ZodIssue } from "zod";
 import { isVisibleBasedOnCondition } from "./conditions";
 import * as defaultComponents from "./default-components";
@@ -76,7 +70,6 @@ function UmbracoForm(props: UmbracoFormProps) {
   } as UmbracoFormConfig;
 
   const [internalData, setInternalData] = useState<Record<string, unknown>>({});
-  const deferredInternalData = useDeferredValue(internalData);
 
   const [attemptCount, setAttemptCount] = useState<number>(0);
   const [formIssues, setFormIssues] = useState<ZodIssue[]>([]);
@@ -87,7 +80,7 @@ function UmbracoForm(props: UmbracoFormProps) {
     isVisibleBasedOnCondition(
       dto,
       form,
-      deferredInternalData,
+      internalData,
       config?.mapCustomFieldToZodType,
     );
 
@@ -122,15 +115,16 @@ function UmbracoForm(props: UmbracoFormProps) {
     // dont validate fields that are not visible to the user
     const fieldsWithConditionsMet = filterFieldsByConditions(
       form,
-      deferredInternalData,
+      internalData,
       config.mapCustomFieldToZodType,
     ).map((field) => field.alias);
 
     // get all fields with issues and filter out fields with conditions that are not met
-    const allFieldIssues = validateFormData(
-      deferredInternalData,
-    ).error?.issues?.filter((issue) =>
-      fieldsWithConditionsMet.includes(getFieldByZodIssue(form, issue)?.alias),
+    const allFieldIssues = validateFormData(internalData).error?.issues?.filter(
+      (issue) =>
+        fieldsWithConditionsMet.includes(
+          getFieldByZodIssue(form, issue)?.alias,
+        ),
     );
 
     // get all aliases for fields with issues
@@ -165,7 +159,7 @@ function UmbracoForm(props: UmbracoFormProps) {
       return false;
     }
     return true;
-  }, [config, form, validateFormData, currentPage, deferredInternalData]);
+  }, [config, form, validateFormData, currentPage, internalData]);
 
   const handleOnChange = useCallback(
     (e: React.ChangeEvent<HTMLFormElement>) => {
@@ -248,29 +242,22 @@ function UmbracoForm(props: UmbracoFormProps) {
     }
   }, [formIssues]);
 
-  const handleNextPage = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault();
-      if (
-        config.shouldValidate &&
-        (config.validateMode === "onSubmit" || config.validateMode === "all")
-      ) {
-        startValidationTransition(() => {
-          if (isCurrentPageValid() === false) {
-            scrollToTopOfForm();
-            focusFirstInvalidField();
-            setAttemptCount((prev) => prev + 1);
-            return;
-          }
-          setCurrentPage((prev) => prev + 1);
-          setAttemptCount(0);
-        });
-      } else {
+  const handleNextPage = useCallback(() => {
+    if (config.shouldValidate) {
+      startValidationTransition(() => {
+        if (isCurrentPageValid() === false) {
+          scrollToTopOfForm();
+          focusFirstInvalidField();
+          setAttemptCount((prev) => prev + 1);
+          return;
+        }
         setCurrentPage((prev) => prev + 1);
-      }
-    },
-    [config, isCurrentPageValid, focusFirstInvalidField, scrollToTopOfForm],
-  );
+        setAttemptCount(0);
+      });
+    } else {
+      setCurrentPage((prev) => prev + 1);
+    }
+  }, [config, isCurrentPageValid, focusFirstInvalidField, scrollToTopOfForm]);
 
   const handlePreviousPage = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -285,6 +272,9 @@ function UmbracoForm(props: UmbracoFormProps) {
     (e: React.FormEvent<HTMLFormElement>) => {
       if (config.shouldValidate) {
         e.preventDefault();
+        if (totalPages > 1 && currentPage !== totalPages - 1) {
+          return handleNextPage();
+        }
         startValidationTransition(() => {
           setAttemptCount((prev) => prev + 1);
           const submitData = coerceFormData(
@@ -311,10 +301,12 @@ function UmbracoForm(props: UmbracoFormProps) {
       }
     },
     [
+      currentPage,
       focusFirstInvalidField,
       config,
       onSubmit,
       form.showValidationSummary,
+      handleNextPage,
       validateFormData,
     ],
   );

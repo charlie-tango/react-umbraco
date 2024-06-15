@@ -70,7 +70,7 @@ describe("umbracoFormToZod", () => {
     expect(schema).toBeInstanceOf(z.ZodType);
     expect(schema).toMatchSnapshot();
   });
-  test("should make required fields from schema optional if dependent", () => {
+  test("should make required fields from schema optional if dependant", () => {
     const formData = {
       name: "test",
       email: "test@test.com",
