@@ -1,4 +1,3 @@
-import z from "zod";
 import { getFieldById } from "./field-utils";
 import type {
   DtoWithCondition,
@@ -35,11 +34,15 @@ export function isVisibleBasedOnCondition(
     mapCustomFieldToZodType,
   );
 
-  return dto?.condition?.actionType === "Show"
-    ? isFulfilled
-    : dto?.condition?.actionType === "Hide"
-      ? !isFulfilled
-      : true;
+  if (dto?.condition?.actionType === "Show") {
+    return isFulfilled;
+  }
+
+  if (dto?.condition?.actionType === "Hide") {
+    return !isFulfilled;
+  }
+
+  return true;
 }
 
 /**

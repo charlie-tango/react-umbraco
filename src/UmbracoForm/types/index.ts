@@ -210,11 +210,17 @@ export type UmbracoFormConfig = {
       /** Flag indicating if client-side validation should be performed; defaults to `false` */
       shouldValidate: true;
       /** Flag indicating if native browser validation should be used alongside client-side validation; defaults to `false` */
-      shouldUseNativeValidation?: boolean;
+      shouldUseNativeValidation?: false;
       /** Flag indicating if the form should be validated on change, blur, or submit; defaults to `onSubmit` */
       validateMode?: "onBlur" | "onSubmit" | "onChange" | "all";
       /** Re-validate the form on change, blur, or submit; defaults to `onBlur` */
       reValidateMode?: "onChange" | "onBlur" | "onSubmit";
+    }
+  | {
+      shouldValidate: true;
+      shouldUseNativeValidation: true;
+      validateMode?: never;
+      reValidateMode?: never;
     }
   | {
       shouldValidate?: false;

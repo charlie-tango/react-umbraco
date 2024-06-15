@@ -4,6 +4,7 @@ import { isVisibleBasedOnCondition } from "./conditions";
 import {
   filterFieldsByConditions,
   getAllFields,
+  getAllFieldsOnPage,
   getFieldByAlias,
   getFieldByZodIssue,
 } from "./field-utils";
@@ -17,35 +18,21 @@ import {
 /** convert a form field definition to a zod type */
 export type MapFormFieldToZodFn = (field?: FormFieldDto) => z.ZodTypeAny;
 
-/** converts an umbraco form definition to a zod schema
- * @see https://docs.umbraco.com/umbraco-forms/developer/ajaxforms#requesting-a-form-definition */
-export function umbracoFormToZod(
-  form: FormDto,
-  mapCustomFieldToZodType?: MapFormFieldToZodFn,
-): UmbracoFormSchema {
-  const fields = getAllFields(form).filter(
-    (field) => field.id !== DefaultFieldType.TitleAndDescription,
-  );
+const refineForConditionals =
+  (
+    form: FormDto,
+    fields: FormFieldDto[],
+    mapCustomFieldToZodType?: MapFormFieldToZodFn,
+  ) =>
+  (value: Record<string, unknown>, ctx: z.RefinementCtx) => {
+    const dependentFieldAliases = fields
+      .filter(
+        (field) =>
+          field?.condition?.rules && field?.condition?.rules?.length > 0,
+      )
+      .map((field) => field.alias);
 
-  const dependentFieldAliases: string[] = fields
-    .filter(
-      (field) => field?.condition?.rules && field?.condition?.rules.length > 0,
-    )
-    .map((field) => field.alias)
-    .filter(Boolean) as string[];
-
-  const mappedFields = fields.reduce<Record<string, z.ZodTypeAny>>(
-    (acc, field) => {
-      if (field.alias) {
-        acc[field.alias] = mapFieldToZod(field, mapCustomFieldToZodType);
-      }
-      return acc;
-    },
-    {},
-  );
-
-  const schema = z.object(mappedFields).superRefine((value, ctx) => {
-    for (const alias of dependentFieldAliases) {
+    for (const alias in dependentFieldAliases) {
       const field = getFieldByAlias(form, alias) as FormFieldDto;
       const isVisible = isVisibleBasedOnCondition(
         field,
@@ -64,7 +51,50 @@ export function umbracoFormToZod(
         }
       }
     }
+  };
+
+function mapFieldsToZodObject(
+  fields: FormFieldDto[],
+  mapCustomFieldToZodType?: MapFormFieldToZodFn,
+) {
+  const mappedFields = fields?.reduce<Record<string, z.ZodTypeAny>>(
+    (acc, field) => {
+      if (field?.alias) {
+        acc[field.alias] = mapFieldToZod(field, mapCustomFieldToZodType);
+      }
+      return acc;
+    },
+    {},
+  );
+  return z.object(mappedFields);
+}
+
+export function umbracoFormPagesToZodSchemas(
+  form: FormDto,
+  mapCustomFieldToZodType?: MapFormFieldToZodFn,
+): UmbracoFormSchema[] {
+  const pageSchemas = form?.pages?.map((page) => {
+    const fields = getAllFieldsOnPage(page);
+    return mapFieldsToZodObject(fields, mapCustomFieldToZodType).superRefine(
+      refineForConditionals(form, fields, mapCustomFieldToZodType),
+    );
   });
+  return pageSchemas as UmbracoFormSchema[];
+}
+
+/** converts an umbraco form definition to a zod schema
+ * @see https://docs.umbraco.com/umbraco-forms/developer/ajaxforms#requesting-a-form-definition */
+export function umbracoFormToZod(
+  form: FormDto,
+  mapCustomFieldToZodType?: MapFormFieldToZodFn,
+): UmbracoFormSchema {
+  const fields = getAllFields(form).filter(
+    (field) => field.id !== DefaultFieldType.TitleAndDescription,
+  );
+
+  const schema = mapFieldsToZodObject(fields).superRefine(
+    refineForConditionals(form, fields, mapCustomFieldToZodType),
+  );
 
   return schema as UmbracoFormSchema;
 }

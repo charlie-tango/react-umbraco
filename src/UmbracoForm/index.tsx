@@ -11,6 +11,7 @@ import type { DtoWithCondition, FormDto, UmbracoFormConfig } from "./types";
 import {
   coerceFormData,
   sortZodIssuesByFieldAlias,
+  umbracoFormPagesToZodSchemas,
   umbracoFormToZod,
 } from "./umbraco-form-to-zod";
 
@@ -83,6 +84,8 @@ function UmbracoForm(props: UmbracoFormProps) {
       internalData,
       config?.mapCustomFieldToZodType,
     );
+
+  const totalPages = form?.pages?.filter(checkCondition).length ?? 1;
 
   const validateFormData = useCallback(
     (coercedData: Record<string, unknown>, fieldName?: string) => {
@@ -301,6 +304,7 @@ function UmbracoForm(props: UmbracoFormProps) {
       }
     },
     [
+      totalPages,
       currentPage,
       focusFirstInvalidField,
       config,
@@ -315,8 +319,6 @@ function UmbracoForm(props: UmbracoFormProps) {
     form,
     config,
   };
-
-  const totalPages = form?.pages?.filter(checkCondition).length ?? 1;
 
   return (
     <Fragment>
@@ -386,7 +388,6 @@ function UmbracoForm(props: UmbracoFormProps) {
               {...context}
             />
             <NextButton
-              onClick={handleNextPage}
               currentPage={currentPage}
               totalPages={totalPages}
               {...context}
@@ -411,6 +412,11 @@ UmbracoForm.Field = defaultComponents.Field;
 UmbracoForm.SubmitButton = defaultComponents.SubmitButton;
 UmbracoForm.ValidationSummary = defaultComponents.ValidationSummary;
 
-export { umbracoFormToZod, coerceFormData, UmbracoForm };
+export {
+  umbracoFormToZod,
+  umbracoFormPagesToZodSchemas,
+  coerceFormData,
+  UmbracoForm,
+};
 export type * from "./types";
 export default UmbracoForm;
