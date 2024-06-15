@@ -5,7 +5,6 @@ import {
   filterFieldsByConditions,
   getAllFields,
   getFieldByAlias,
-  getFieldById,
   getFieldByZodIssue,
 } from "./field-utils";
 import { DefaultFieldType, type FormDto, type FormFieldDto } from "./types";
@@ -23,105 +22,44 @@ export function umbracoFormToZod(
     (field) => field.id !== DefaultFieldType.TitleAndDescription,
   );
 
-  const dependentFields = fields.filter(
-    (field) => field?.condition?.rules && field?.condition?.rules.length > 0,
-  );
+  const dependentFieldAliases: string[] = fields
+    .filter(
+      (field) => field?.condition?.rules && field?.condition?.rules.length > 0,
+    )
+    .map((field) => field.alias)
+    .filter(Boolean) as string[];
 
-  const groupedDependentFieldIds = dependentFields
-    ?.map((field) => {
-      return [
-        field?.id,
-        ...(field?.condition?.rules?.map((rule) => rule?.field) ?? []),
-      ];
-    })
-    .reduce<(string | undefined)[][]>((acc, group, index, allGroups) => {
-      // check if any of the groups overlap
-      const overlappingGroups = allGroups.filter((otherGroup) =>
-        otherGroup.some((val) => group.includes(val)),
-      );
-
-      if (overlappingGroups) {
-        // merge overlapping groups
-        const mergedGroup = [...new Set(overlappingGroups.flat())];
-
-        // if merged group already exists, skip
-        if (
-          acc.some((existingGroup) =>
-            existingGroup.every((val, index) => val === mergedGroup[index]),
-          )
-        )
-          return acc;
-
-        acc.push(mergedGroup);
-        return acc;
+  const mappedFields = fields.reduce<Record<string, z.ZodTypeAny>>(
+    (acc, field) => {
+      if (field.alias) {
+        acc[field.alias] = mapFieldToZod(field, mapCustomFieldToZodType);
       }
-
-      acc.push(group);
       return acc;
-    }, []);
-
-  const independentFields = fields?.filter((fields) =>
-    groupedDependentFieldIds.some(
-      (group) => group.includes(fields.id) === false,
-    ),
-  );
-  const groupedFields = groupedDependentFieldIds.map((group) =>
-    group.map((fieldId) => getFieldById(form, fieldId)),
+    },
+    {},
   );
 
-  const intermediarySchema: Record<string, z.ZodTypeAny> = {};
-  for (const field of independentFields) {
-    if (!field?.alias) continue;
-    intermediarySchema[field.alias] = mapFieldToZod(
-      field,
-      mapCustomFieldToZodType,
-    );
-  }
-
-  const groupSchemas = [];
-  for (const group of groupedFields) {
-    const groupSchema: Record<string, z.ZodTypeAny> = {};
-    for (const field of group) {
-      if (!field?.alias) continue;
-      groupSchema[field.alias] = mapFieldToZod(field, mapCustomFieldToZodType);
-    }
-    const refinedGroup = z.object(groupSchema).superRefine((value, ctx) => {
-      const aliases = Object.keys(value);
-      for (const alias of aliases) {
-        const field = getFieldByAlias(form, alias) as FormFieldDto;
-        const conditionFulfilled = isVisibleBasedOnCondition(
-          field,
-          form,
-          value,
-          mapCustomFieldToZodType,
-        );
-        if (
-          field?.required &&
-          field?.condition?.actionType === "Show" &&
-          conditionFulfilled
-        ) {
-          if (!value[alias]) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.invalid_type,
-              path: [alias],
-              fatal: true,
-              message: field?.requiredErrorMessage,
-            } as z.ZodIssue);
-          }
+  return z.object(mappedFields).superRefine((value, ctx) => {
+    for (const alias of dependentFieldAliases) {
+      const field = getFieldByAlias(form, alias) as FormFieldDto;
+      const isVisible = isVisibleBasedOnCondition(
+        field,
+        form,
+        value,
+        mapCustomFieldToZodType,
+      );
+      if (field?.required && isVisible) {
+        if (!value[alias]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.invalid_type,
+            path: [alias],
+            fatal: true,
+            message: field?.requiredErrorMessage,
+          } as z.ZodIssue);
         }
       }
-    });
-
-    groupSchemas.push(refinedGroup);
-  }
-
-  let finalSchema: z.ZodTypeAny = z.object(intermediarySchema);
-
-  for (const groupSchema of groupSchemas) {
-    finalSchema = z.intersection(groupSchema, finalSchema);
-  }
-
-  return finalSchema;
+    }
+  });
 }
 
 /** map umbraco form fields to zod type */
