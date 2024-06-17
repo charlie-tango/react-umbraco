@@ -356,7 +356,9 @@ function processDef(
     parsedValue = Number.isNaN(num) ? value : num;
   } else if (def instanceof z.ZodDate && typeof value === "string") {
     const date = Date.parse(value);
-    parsedValue = Number.isNaN(date) ? value : new Date(date);
+    parsedValue = Number.isNaN(date)
+      ? value
+      : new Date(date)?.toISOString()?.split("T")?.at(0);
   } else if (def instanceof z.ZodBoolean) {
     parsedValue =
       value === "true" ? true : value === "false" ? false : Boolean(value);

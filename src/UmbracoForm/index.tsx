@@ -358,6 +358,7 @@ function UmbracoForm(props: UmbracoFormProps) {
                       const defaultValue = field?.alias
                         ? (internalData[field.alias] as string)
                         : undefined;
+
                       const fieldTypeProps = {
                         field,
                         issues,
