@@ -15,9 +15,23 @@ import {
   type UmbracoFormSchema,
 } from "./types";
 
-/** convert a form field definition to a zod type */
+/**
+ * Defines a function type that maps a FormFieldDto to a zod type.
+ *
+ * @param field - The FormFieldDto to be mapped to a zod type. Optional.
+ * @returns A zod type representing the mapped form field.
+ */
 export type MapFormFieldToZodFn = (field?: FormFieldDto) => z.ZodTypeAny;
 
+/**
+ * Refines the form data for conditional fields based on the provided form, fields, and custom field to Zod type mapping.
+ *
+ * @param form - The form data object.
+ * @param fields - An array of form field objects.
+ * @param mapCustomFieldToZodType - Optional. A function to map custom field types to Zod types.
+ *
+ * @returns A function that refines the form data for conditional fields.
+ */
 const refineForConditionals =
   (
     form: FormDto,
@@ -53,6 +67,14 @@ const refineForConditionals =
     }
   };
 
+/**
+ * Maps an array of FormFieldDto objects to a Zod object schema.
+ *
+ * @param fields - An array of FormFieldDto objects to map to a Zod object schema.
+ * @param mapCustomFieldToZodType - Optional function to map custom fields to Zod types.
+ *
+ * @returns A Zod object schema representing the mapped fields.
+ */
 function mapFieldsToZodObject(
   fields: FormFieldDto[],
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
@@ -69,12 +91,22 @@ function mapFieldsToZodObject(
   return z.object(mappedFields);
 }
 
+/**
+ * Converts Umbraco form pages to an array of Zod schemas.
+ *
+ * @param form - The Umbraco form object containing pages and fields.
+ * @param mapCustomFieldToZodType - Optional function to map custom form fields to Zod types.
+ *
+ * @returns An array of UmbracoFormSchema objects representing the Zod schemas for each form page.
+ */
 export function umbracoFormPagesToZodArray(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): UmbracoFormSchema[] {
   const pageSchemas = form?.pages?.map((page) => {
-    const fields = getAllFieldsOnPage(page);
+    const fields = getAllFieldsOnPage(page).filter(
+      (field) => field.id !== DefaultFieldType.TitleAndDescription,
+    );
     return mapFieldsToZodObject(fields, mapCustomFieldToZodType).superRefine(
       refineForConditionals(form, fields, mapCustomFieldToZodType),
     );
@@ -99,7 +131,14 @@ export function umbracoFormToZod(
   return schema as UmbracoFormSchema;
 }
 
-/** map umbraco form fields to zod type */
+/**
+ * Maps a FormFieldDto to a zod type..
+ *
+ * @param field - The FormFieldDto object to map.
+ * @param mapCustomFieldToZodType - Optional function to map custom fields to Zod types.
+ *
+ * @returns A zod type representing the mapped FormFieldDto.
+ */
 export function mapFieldToZod(
   field: FormFieldDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
@@ -202,6 +241,13 @@ export function getIssueId(
   return `issue:${issue?.code}:${field?.id}`;
 }
 
+/**
+ * Sorts an array of Zod issues by the field alias in a given form.
+ *
+ * @param form - The form object containing all fields.
+ * @param issues - An array of Zod issues to be sorted.
+ * @returns A sorted array of Zod issues based on the field alias in the form.
+ */
 export function sortZodIssuesByFieldAlias(form: FormDto, issues: z.ZodIssue[]) {
   const allFields = getAllFields(form);
   const fieldPaths = allFields?.map((field) => field?.alias);
@@ -218,7 +264,15 @@ export function sortZodIssuesByFieldAlias(form: FormDto, issues: z.ZodIssue[]) {
   });
 }
 
-/** omit fields from data that are not visible to the user */
+/**
+ * Omit fields from data based on a condition specified in the form.
+ *
+ * @param form - The form object containing the conditions for filtering fields.
+ * @param data - The data object to filter fields from.
+ * @param mapCustomFieldToZodType - Optional mapping function to map custom fields to Zod types.
+ *
+ * @returns A new object with fields omitted based on the condition specified in the form.
+ */
 export function omitFieldsBasedOnConditionFromData(
   form: FormDto,
   data: Record<string, unknown>,
@@ -238,7 +292,13 @@ export function omitFieldsBasedOnConditionFromData(
   return output;
 }
 
-/** coerces form data to a zod schema format */
+/**
+ * Coerces form data into a structured object based on a given schema.
+ *
+ * @param formData - The FormData object containing the form data to be coerced.
+ * @param schema - The UmbracoFormSchema defining the structure of the form data.
+ * @returns A structured object representing the coerced form data.
+ */
 export function coerceFormData(
   formData: FormData | undefined,
   schema: UmbracoFormSchema,
@@ -262,7 +322,14 @@ export function coerceFormData(
   return output;
 }
 
-export function coerceFieldValue(def: z.ZodTypeAny, value: unknown) {
+/**
+ * Coerces a field value to match the expected type defined by a Zod schema.
+ *
+ * @param {z.ZodTypeAny} def - The Zod schema definition for the field
+ * @param {unknown} value - The value to be coerced
+ * @returns {unknown} - The coerced value
+ */
+export function coerceFieldValue(def: z.ZodTypeAny, value: unknown): unknown {
   const baseShape = findBaseDef(def);
 
   if (baseShape instanceof z.ZodBoolean) {
@@ -289,8 +356,14 @@ export function coerceFieldValue(def: z.ZodTypeAny, value: unknown) {
   return value;
 }
 
-/** coerces an umbraco condition rule value value based on a zod type */
-export function coerceRuleValue(def: z.ZodTypeAny, value: unknown) {
+/**
+ * Coerces a value to match the expected type defined by a Zod schema.
+ *
+ * @param {z.ZodTypeAny} def - The Zod schema definition to coerce the value to.
+ * @param {unknown} value - The value to be coerced.
+ * @returns {unknown} - The coerced value that matches the expected type defined by the Zod schema.
+ */
+export function coerceRuleValue(def: z.ZodTypeAny, value: unknown): unknown {
   const baseShape = findBaseDef(def);
 
   if (baseShape instanceof z.ZodBoolean) {
@@ -313,8 +386,13 @@ export function coerceRuleValue(def: z.ZodTypeAny, value: unknown) {
   return value;
 }
 
-/** recursively find the base definition for a given ZodType */
-export function findBaseDef<R extends z.ZodTypeAny>(def: z.ZodTypeAny) {
+/**
+ * Recursively finds the base definition for a given ZodType.
+ *
+ * @param def - The ZodType for which to find the base definition.
+ * @returns The base definition of the given ZodType.
+ */
+export function findBaseDef<R extends z.ZodTypeAny>(def: z.ZodTypeAny): R {
   if (def instanceof z.ZodOptional || def instanceof z.ZodDefault) {
     return findBaseDef(def._def.innerType);
   }
@@ -327,6 +405,12 @@ export function findBaseDef<R extends z.ZodTypeAny>(def: z.ZodTypeAny) {
   return def as R;
 }
 
+/**
+ * Checks if a Zod type definition is an array type.
+ *
+ * @param def - The Zod type definition to check.
+ * @returns A boolean indicating whether the Zod type definition is an array type.
+ */
 function isZodArrayType(def: z.ZodTypeAny): def is z.ZodArray<z.ZodTypeAny> {
   if (def instanceof z.ZodOptional || def instanceof z.ZodDefault) {
     return isZodArrayType(def._def.innerType);
@@ -340,6 +424,14 @@ function isZodArrayType(def: z.ZodTypeAny): def is z.ZodArray<z.ZodTypeAny> {
   return false;
 }
 
+/**
+ * Process a Zod type definition with a given key and value.
+ *
+ * @param def - The Zod type definition to process.
+ * @param o - The object to process the Zod type definition on.
+ * @param key - The key in the object to process the Zod type definition on.
+ * @param value - The value to process the Zod type definition with.
+ */
 function processDef(
   def: z.ZodTypeAny,
   // biome-ignore lint/suspicious/noExplicitAny: allow for loose typing when processing the zod type

@@ -171,7 +171,6 @@ export function getAttributesForFieldType(
     showValidationSummary === true && hideFieldValidation === true;
   const rendersOnlyLabelError =
     showValidationSummary === false && hideFieldValidation === false;
-
   const errorsAreHidden =
     showValidationSummary === false && hideFieldValidation === true;
 
