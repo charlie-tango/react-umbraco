@@ -122,6 +122,37 @@ it("should render a block element using the renderBlock prop", () => {
     `);
 });
 
+it("should render an inline block element using the renderBlock prop", () => {
+  expect(() =>
+    render(
+      <UmbracoRichText
+        data={{
+          tag: "#root",
+          blocks: [{ content: { id: "1", properties: {} } }],
+          elements: [
+            {
+              tag: "umb-rte-block-inline",
+              attributes: { "content-id": "1" },
+              elements: [],
+            },
+          ],
+        }}
+        renderBlock={(block) => (
+          <div data-testid="umb-rte-block-inline">{block?.content?.id}</div>
+        )}
+      />,
+    ),
+  ).not.toThrowError();
+
+  expect(screen.getByTestId("umb-rte-block-inline")).toMatchInlineSnapshot(`
+      <div
+        data-testid="umb-rte-block-inline"
+      >
+        1
+      </div>
+    `);
+});
+
 it("should handle route-specific path attribute for the anchor href", () => {
   render(
     <UmbracoRichText
