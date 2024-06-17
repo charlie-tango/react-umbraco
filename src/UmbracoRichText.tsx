@@ -116,6 +116,13 @@ export type RichTextElementModel =
       elements: RichTextElementModel[];
     }
   | {
+      tag: "umb-rte-block-inline";
+      attributes: {
+        "content-id": string;
+      };
+      elements: RichTextElementModel[];
+    }
+  | {
       tag: keyof React.JSX.IntrinsicElements;
       attributes: Record<string, unknown> & { route?: RouteAttributes };
       elements?: RichTextElementModel[];
@@ -164,7 +171,10 @@ function RichTextElement({
   if (!children?.length) children = undefined;
 
   // If the tag is a block, skip the normal rendering and render the block
-  if (element.tag === "umb-rte-block") {
+  if (
+    element.tag === "umb-rte-block" ||
+    element.tag === "umb-rte-block-inline"
+  ) {
     const block = blocks?.find(
       (block) => block.content?.id === element.attributes["content-id"],
     );
