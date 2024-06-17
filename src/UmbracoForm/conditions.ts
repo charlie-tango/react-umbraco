@@ -26,7 +26,7 @@ export function isVisibleBasedOnCondition(
   data: Record<string, unknown>,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): boolean {
-  if (!dto.condition) return true;
+  if (!dto?.condition) return true;
   const isFulfilled = areAllRulesFulfilled(
     dto,
     form,

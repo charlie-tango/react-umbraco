@@ -69,7 +69,7 @@ function mapFieldsToZodObject(
   return z.object(mappedFields);
 }
 
-export function umbracoFormPagesToZodSchemas(
+export function umbracoFormPagesToZodArray(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): UmbracoFormSchema[] {
@@ -251,7 +251,6 @@ export function coerceFormData(
 
   for (const key of Object.keys(baseDef.shape)) {
     const zodType = baseDef.shape[key];
-
     parseParams(
       output,
       schema,
@@ -354,8 +353,8 @@ function processDef(
   } else if (def instanceof z.ZodNumber) {
     const num = Number(value);
     parsedValue = Number.isNaN(num) ? value : num;
-  } else if (def instanceof z.ZodDate && typeof value === "string") {
-    const date = Date.parse(value);
+  } else if (def instanceof z.ZodDate) {
+    const date = Date.parse(value?.toString());
     parsedValue = Number.isNaN(date)
       ? value
       : new Date(date)?.toISOString()?.split("T")?.at(0);

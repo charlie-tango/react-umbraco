@@ -1,4 +1,10 @@
-import { Fragment, useCallback, useState, useTransition } from "react";
+import {
+  Fragment,
+  useCallback,
+  useDeferredValue,
+  useState,
+  useTransition,
+} from "react";
 import type { ZodIssue } from "zod";
 import { isVisibleBasedOnCondition } from "./conditions";
 import * as defaultComponents from "./default-components";
@@ -11,7 +17,7 @@ import type { DtoWithCondition, FormDto, UmbracoFormConfig } from "./types";
 import {
   coerceFormData,
   sortZodIssuesByFieldAlias,
-  umbracoFormPagesToZodSchemas,
+  umbracoFormPagesToZodArray,
   umbracoFormToZod,
 } from "./umbraco-form-to-zod";
 
@@ -22,6 +28,10 @@ type RenderFn<T extends React.JSXElementConstructor<any>> = (
 
 export interface UmbracoFormProps
   extends React.FormHTMLAttributes<HTMLFormElement> {
+  onSubmit?: (
+    e: React.FormEvent<HTMLFormElement>,
+    data?: Record<string, unknown>,
+  ) => void;
   form: FormDto;
   config?: Partial<UmbracoFormConfig>;
   renderForm?: RenderFn<typeof defaultComponents.Form>;
@@ -71,17 +81,19 @@ function UmbracoForm(props: UmbracoFormProps) {
   } as UmbracoFormConfig;
 
   const [internalData, setInternalData] = useState<Record<string, unknown>>({});
+  const deferredInternalData = useDeferredValue(internalData);
 
   const [attemptCount, setAttemptCount] = useState<number>(0);
   const [formIssues, setFormIssues] = useState<ZodIssue[]>([]);
   const [summaryIssues, setSummaryIssues] = useState<ZodIssue[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const activePage = form?.pages?.[currentPageIndex];
 
   const checkCondition = (dto: DtoWithCondition) =>
     isVisibleBasedOnCondition(
       dto,
       form,
-      internalData,
+      deferredInternalData,
       config?.mapCustomFieldToZodType,
     );
 
@@ -113,21 +125,18 @@ function UmbracoForm(props: UmbracoFormProps) {
   );
 
   const isCurrentPageValid = useCallback(() => {
-    const activePage = form?.pages?.[currentPage];
-
     // dont validate fields that are not visible to the user
     const fieldsWithConditionsMet = filterFieldsByConditions(
       form,
-      internalData,
+      deferredInternalData,
       config.mapCustomFieldToZodType,
     ).map((field) => field.alias);
 
     // get all fields with issues and filter out fields with conditions that are not met
-    const allFieldIssues = validateFormData(internalData).error?.issues?.filter(
-      (issue) =>
-        fieldsWithConditionsMet.includes(
-          getFieldByZodIssue(form, issue)?.alias,
-        ),
+    const allFieldIssues = validateFormData(
+      deferredInternalData,
+    ).error?.issues?.filter((issue) =>
+      fieldsWithConditionsMet.includes(getFieldByZodIssue(form, issue)?.alias),
     );
 
     // get all aliases for fields with issues
@@ -162,14 +171,23 @@ function UmbracoForm(props: UmbracoFormProps) {
       return false;
     }
     return true;
-  }, [config, form, validateFormData, currentPage, internalData]);
+  }, [config, form, activePage, validateFormData, deferredInternalData]);
 
   const handleOnChange = useCallback(
     (e: React.ChangeEvent<HTMLFormElement>) => {
       const field = e.target;
       const formData = new FormData(e.currentTarget);
-      const coercedData = coerceFormData(formData, config.schema);
-      setInternalData(coercedData);
+      const fieldsOnPage = getAllFieldsOnPage(activePage);
+      // omit fields that are not on the current page
+      const coercedData = Object.fromEntries(
+        Object.entries(coerceFormData(formData, config.schema)).filter(
+          ([key]) => fieldsOnPage?.some((field) => field?.alias === key),
+        ),
+      );
+      setInternalData((prev) => {
+        // merge data with previous data (from prior pages)
+        return !prev ? coercedData : { ...prev, ...coercedData };
+      });
 
       if (config.shouldValidate) {
         const validateOnChange =
@@ -191,7 +209,7 @@ function UmbracoForm(props: UmbracoFormProps) {
         onChange(e);
       }
     },
-    [config, attemptCount, validateFormData, onChange],
+    [config, attemptCount, activePage, validateFormData, onChange],
   );
 
   const handleOnBlur = useCallback(
@@ -254,18 +272,18 @@ function UmbracoForm(props: UmbracoFormProps) {
           setAttemptCount((prev) => prev + 1);
           return;
         }
-        setCurrentPage((prev) => prev + 1);
+        setCurrentPageIndex((prev) => prev + 1);
         setAttemptCount(0);
       });
     } else {
-      setCurrentPage((prev) => prev + 1);
+      setCurrentPageIndex((prev) => prev + 1);
     }
   }, [config, isCurrentPageValid, focusFirstInvalidField, scrollToTopOfForm]);
 
   const handlePreviousPage = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
-      setCurrentPage((prev) => (prev === 0 ? prev : prev - 1));
+      setCurrentPageIndex((prev) => (prev === 0 ? prev : prev - 1));
       scrollToTopOfForm();
     },
     [scrollToTopOfForm],
@@ -275,16 +293,13 @@ function UmbracoForm(props: UmbracoFormProps) {
     (e: React.FormEvent<HTMLFormElement>) => {
       if (config.shouldValidate) {
         e.preventDefault();
-        if (totalPages > 1 && currentPage !== totalPages - 1) {
+        if (totalPages > 1 && currentPageIndex !== totalPages - 1) {
           return handleNextPage();
         }
         startValidationTransition(() => {
           setAttemptCount((prev) => prev + 1);
-          const submitData = coerceFormData(
-            new FormData(e.currentTarget),
-            config.schema,
-          );
-          const validationResult = validateFormData(submitData);
+          const validationResult = validateFormData(internalData);
+
           if (validationResult.success === false) {
             focusFirstInvalidField();
             if (form.showValidationSummary) {
@@ -294,21 +309,22 @@ function UmbracoForm(props: UmbracoFormProps) {
           }
           setSummaryIssues([]);
           if (typeof onSubmit === "function") {
-            onSubmit(e);
+            onSubmit(e, internalData);
           }
         });
       } else {
         if (typeof onSubmit === "function") {
-          onSubmit(e);
+          onSubmit(e, internalData);
         }
       }
     },
     [
       totalPages,
-      currentPage,
+      currentPageIndex,
       focusFirstInvalidField,
       config,
       onSubmit,
+      internalData,
       form.showValidationSummary,
       handleNextPage,
       validateFormData,
@@ -338,7 +354,7 @@ function UmbracoForm(props: UmbracoFormProps) {
             page={page}
             pageIndex={index}
             condition={checkCondition(page)}
-            currentPage={currentPage}
+            currentPage={currentPageIndex}
             totalPages={totalPages}
             {...context}
           >
@@ -356,9 +372,8 @@ function UmbracoForm(props: UmbracoFormProps) {
                         (issue) => issue.path.join(".") === field.alias,
                       );
                       const defaultValue = field?.alias
-                        ? (internalData[field.alias] as string)
+                        ? (deferredInternalData[field.alias] as string)
                         : undefined;
-
                       const fieldTypeProps = {
                         field,
                         issues,
@@ -392,19 +407,19 @@ function UmbracoForm(props: UmbracoFormProps) {
           <Fragment>
             <PreviousButton
               onClick={handlePreviousPage}
-              currentPage={currentPage}
+              currentPage={currentPageIndex}
               totalPages={totalPages}
               {...context}
             />
             <NextButton
-              currentPage={currentPage}
+              currentPage={currentPageIndex}
               totalPages={totalPages}
               {...context}
             />
           </Fragment>
         ) : null}
         <SubmitButton
-          currentPage={currentPage}
+          currentPage={currentPageIndex}
           totalPages={totalPages}
           {...context}
         />
@@ -423,7 +438,7 @@ UmbracoForm.ValidationSummary = defaultComponents.ValidationSummary;
 
 export {
   umbracoFormToZod,
-  umbracoFormPagesToZodSchemas,
+  umbracoFormPagesToZodArray,
   coerceFormData,
   UmbracoForm,
 };
