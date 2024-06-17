@@ -115,7 +115,6 @@ export function mapFieldToZod(
       DefaultFieldType.LongAnswer,
       DefaultFieldType.FileUpload,
       DefaultFieldType.DropdownList,
-      DefaultFieldType.SingleChoice,
       DefaultFieldType.RichText,
       DefaultFieldType.Password,
       DefaultFieldType.HiddenField,
@@ -158,13 +157,12 @@ export function mapFieldToZod(
     })
     .with(
       DefaultFieldType.Checkbox,
+      DefaultFieldType.SingleChoice,
       DefaultFieldType.DataConsent,
       DefaultFieldType.Recaptcha2,
       DefaultFieldType.RecaptchaV3WithScore,
       () => {
-        zodType = z.boolean({
-          coerce: true,
-        });
+        zodType = z.boolean({ coerce: true });
         if (field?.required && !hasCondition) {
           zodType = zodType.refine((value) => value === true, {
             message: field?.requiredErrorMessage,
@@ -253,13 +251,12 @@ export function coerceFormData(
 
   for (const key of Object.keys(baseDef.shape)) {
     const zodType = baseDef.shape[key];
+
     parseParams(
       output,
       schema,
       key,
-      isZodArrayType(zodType)
-        ? formData.getAll(key) ?? []
-        : formData.get(key) ?? "",
+      isZodArrayType(zodType) ? formData.getAll(key) : formData.get(key),
     );
   }
 
@@ -270,7 +267,17 @@ export function coerceFieldValue(def: z.ZodTypeAny, value: unknown) {
   const baseShape = findBaseDef(def);
 
   if (baseShape instanceof z.ZodBoolean) {
-    return !!value; // coerce to boolean
+    if (typeof value === "string") {
+      switch (value) {
+        case "true":
+        case "on":
+          return true;
+        case "false":
+        case "off":
+          return false;
+      }
+    }
+    return Boolean(value);
   }
   if (baseShape instanceof z.ZodDate) {
     try {
@@ -299,7 +306,7 @@ export function coerceRuleValue(def: z.ZodTypeAny, value: unknown) {
           return false;
       }
     }
-    return !!value; // coerce to boolean
+    return Boolean(value);
   }
   if (baseShape instanceof z.ZodDate) {
     return new Date(value as string);
@@ -386,7 +393,7 @@ function parseParams(
   // biome-ignore lint/suspicious/noExplicitAny: allow for loose typing when processing the zod type
   schema: any,
   key: string,
-  value: string | string[] | FormDataEntryValue | FormDataEntryValue[],
+  value: string | string[] | FormDataEntryValue | FormDataEntryValue[] | null,
 ) {
   // find actual shape definition for this key
   let shape = schema;

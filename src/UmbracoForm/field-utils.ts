@@ -253,7 +253,7 @@ export function getAttributesForFieldType(
       () =>
         ({
           type: "checkbox",
-          defaultChecked: !!defaultValue,
+          value: "on",
           ...commonAttributes,
         }) satisfies React.InputHTMLAttributes<HTMLInputElement>,
     )

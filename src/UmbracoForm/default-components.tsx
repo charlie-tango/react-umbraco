@@ -66,10 +66,10 @@ export function Page({
   ...rest
 }: PageProps) {
   if (!condition) return null;
-  const pageIsActive = currentPage === pageIndex;
+  if (currentPage !== pageIndex) return null;
 
   return (
-    <section style={pageIsActive ? {} : { display: "none" }} {...rest}>
+    <section {...rest}>
       {page.caption ? (
         <header>
           <h2>{page.caption}</h2>
@@ -220,11 +220,8 @@ export function FieldType({
   return match(field?.type?.id as DefaultFieldType)
     .with(
       DefaultFieldType.ShortAnswer,
-      DefaultFieldType.Checkbox,
-      DefaultFieldType.DataConsent,
       DefaultFieldType.FileUpload,
-      DefaultFieldType.Recaptcha2,
-      DefaultFieldType.RecaptchaV3WithScore,
+      DefaultFieldType.SingleChoice,
       DefaultFieldType.HiddenField,
       DefaultFieldType.Date,
       DefaultFieldType.Password,
@@ -234,33 +231,46 @@ export function FieldType({
       <textarea {...attributes} />
     ))
     .with(
-      DefaultFieldType.SingleChoice,
-      DefaultFieldType.MultipleChoice,
-      (uuid) => (
-        <Fragment>
-          {field?.preValues?.map((preValue) => {
-            const settings = field?.settings as FieldSettings[typeof uuid];
-            const id = `${preValue.value}:${field.id}`;
-            return (
-              <Fragment key={id}>
-                <label htmlFor={id}>{preValue.caption}</label>
-                <input
-                  defaultChecked={settings.defaultValue === preValue.value}
-                  {...attributes}
-                  id={id}
-                  type={
-                    field.type?.id === DefaultFieldType.MultipleChoice
-                      ? "checkbox"
-                      : "radio"
-                  }
-                  value={preValue.value}
-                />
-              </Fragment>
-            );
-          })}
-        </Fragment>
+      DefaultFieldType.Checkbox,
+      DefaultFieldType.DataConsent,
+      DefaultFieldType.Recaptcha2,
+      DefaultFieldType.RecaptchaV3WithScore,
+      () => (
+        <input
+          {...attributes}
+          defaultValue={undefined}
+          defaultChecked={!!attributes.defaultValue}
+        />
       ),
     )
+    .with(DefaultFieldType.MultipleChoice, (uuid) => (
+      <Fragment>
+        {field?.preValues?.map((preValue) => {
+          const settings = field?.settings as FieldSettings[typeof uuid];
+          const id = `${preValue.value}:${field.id}`;
+          const defaultChecked = Array.isArray(attributes.defaultValue)
+            ? attributes.defaultValue.includes(preValue.value)
+            : attributes.defaultValue === preValue.value ||
+              settings.defaultValue === preValue.value;
+          return (
+            <Fragment key={id}>
+              <label htmlFor={id}>{preValue.caption}</label>
+              <input
+                defaultChecked={defaultChecked}
+                {...attributes}
+                defaultValue={preValue.value}
+                id={id}
+                type={
+                  field.type?.id === DefaultFieldType.MultipleChoice
+                    ? "checkbox"
+                    : "radio"
+                }
+              />
+            </Fragment>
+          );
+        })}
+      </Fragment>
+    ))
     .with(DefaultFieldType.DropdownList, () => (
       <select {...attributes}>
         {field?.preValues?.map((preValue) => (
@@ -288,9 +298,7 @@ export function SubmitButton(
     NavigationProps,
 ) {
   const { form, totalPages, currentPage, ...rest } = props;
-  if (totalPages > 1 && currentPage !== totalPages - 1) {
-    return null;
-  }
+  if (totalPages > 1 && currentPage !== totalPages - 1) return null;
   return (
     <button type="submit" {...rest}>
       {form.submitLabel}
@@ -306,9 +314,7 @@ export function NextButton(
   },
 ) {
   const { form, currentPage, totalPages, ...rest } = props;
-  if (currentPage === totalPages - 1) {
-    return null;
-  }
+  if (currentPage === totalPages - 1) return null;
   return (
     <button type="submit" {...rest}>
       {form.nextLabel}
@@ -322,9 +328,7 @@ export function PreviousButton(
     NavigationProps,
 ) {
   const { form, currentPage, totalPages, ...rest } = props;
-  if (currentPage === 0) {
-    return null;
-  }
+  if (currentPage === 0) return null;
   return (
     <button type="button" {...rest}>
       {form.previousLabel}
@@ -341,7 +345,6 @@ export function ValidationSummary(props: ValidationSummaryProps) {
   const { form, issues } = props;
   const hasIssues = issues && issues.length > 0;
   if (!hasIssues) return null;
-
   return (
     <section role="alert">
       <ol>

@@ -246,7 +246,7 @@ function UmbracoForm(props: UmbracoFormProps) {
   }, [formIssues]);
 
   const handleNextPage = useCallback(() => {
-    if (config.shouldValidate) {
+    if (config.shouldValidate && config.shouldUseNativeValidation === false) {
       startValidationTransition(() => {
         if (isCurrentPageValid() === false) {
           scrollToTopOfForm();
@@ -355,7 +355,15 @@ function UmbracoForm(props: UmbracoFormProps) {
                       const issues = formIssues?.filter(
                         (issue) => issue.path.join(".") === field.alias,
                       );
-                      const fieldTypeProps = { field, issues, ...context };
+                      const defaultValue = field?.alias
+                        ? (internalData[field.alias] as string)
+                        : undefined;
+                      const fieldTypeProps = {
+                        field,
+                        issues,
+                        defaultValue,
+                        ...context,
+                      };
                       return (
                         <Field
                           key={`field.${field?.id}`}
