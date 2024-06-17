@@ -30,6 +30,17 @@
       "attributes": {},
       "elements": [
         {
+          "tag": "umb-rte-block-inline",
+          "attributes": { "content-id": "1" },
+          "elements": []
+        }
+      ]
+    },
+    {
+      "tag": "p",
+      "attributes": {},
+      "elements": [
+        {
           "text": "What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself. It includes every sensible typographic element I could think of, like ",
           "tag": "#text"
         },

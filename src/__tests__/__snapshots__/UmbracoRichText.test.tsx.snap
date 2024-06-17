@@ -12,6 +12,11 @@ exports[`should render fixture content correctly 1`] = `
         data-testid="block"
       />
       <p>
+        <div
+          data-testid="block"
+        />
+      </p>
+      <p>
         What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself. It includes every sensible typographic element I could think of, like 
         <strong>
           bold text
@@ -488,6 +493,11 @@ exports[`should render fixture content correctly 1`] = `
     <div
       data-testid="block"
     />
+    <p>
+      <div
+        data-testid="block"
+      />
+    </p>
     <p>
       What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself. It includes every sensible typographic element I could think of, like 
       <strong>
