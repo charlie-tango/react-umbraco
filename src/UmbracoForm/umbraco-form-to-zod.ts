@@ -46,7 +46,8 @@ const refineForConditionals =
       )
       .map((field) => field.alias);
 
-    for (const alias in dependentFieldAliases) {
+    for (const alias of dependentFieldAliases) {
+      if (!alias) continue;
       const field = getFieldByAlias(form, alias) as FormFieldDto;
       const isVisible = isVisibleBasedOnCondition(
         field,
@@ -54,6 +55,7 @@ const refineForConditionals =
         value,
         mapCustomFieldToZodType,
       );
+
       if (field?.required && isVisible) {
         if (!value[alias]) {
           ctx.addIssue({
@@ -99,7 +101,7 @@ function mapFieldsToZodObject(
  *
  * @returns An array of UmbracoFormSchema objects representing the Zod schemas for each form page.
  */
-export function umbracoFormPagesToZodArray(
+export function umbracoFormPagesToZodSchemas(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): UmbracoFormSchema[] {

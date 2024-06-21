@@ -75,7 +75,7 @@ describe("umbracoFormToZod", () => {
       name: "test",
       email: "test@test.com",
       comment: "test",
-      date: "02-02-2022",
+      date: "02-02-2024",
       country: "gb",
       favouriteColour: ["red"],
       dataConsent: true,

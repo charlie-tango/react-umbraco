@@ -12,6 +12,7 @@ import type {
 import { DefaultFieldType } from "./types";
 import { type MapFormFieldToZodFn, getIssueId } from "./umbraco-form-to-zod";
 
+// cache fields by id and alias to prevent having to flatten the pages multiple times
 const cachedFieldsById = new WeakMap<FormDto, Map<string, FormFieldDto>>();
 const cachedFieldsByAlias = new WeakMap<FormDto, Map<string, FormFieldDto>>();
 const cachedFieldsByPage = new WeakMap<FormPageDto, FormFieldDto[]>();

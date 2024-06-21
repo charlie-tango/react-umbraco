@@ -95,6 +95,7 @@ export function areAllRulesFulfilled(
 
   return true;
 }
+
 export const FIELD_CONDITION_OPERATOR_FUNCTIONS: {
   [K in FieldConditionRuleOperator]: (
     fieldValue: unknown,

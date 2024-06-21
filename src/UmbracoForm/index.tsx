@@ -17,7 +17,7 @@ import type { DtoWithCondition, FormDto, UmbracoFormConfig } from "./types";
 import {
   coerceFormData,
   sortZodIssuesByFieldAlias,
-  umbracoFormPagesToZodArray,
+  umbracoFormPagesToZodSchemas,
   umbracoFormToZod,
 } from "./umbraco-form-to-zod";
 
@@ -28,23 +28,36 @@ type RenderFn<T extends React.JSXElementConstructor<any>> = (
 
 export interface UmbracoFormProps
   extends React.FormHTMLAttributes<HTMLFormElement> {
+  /** Custom onSubmit handler that provides form event and optional data object */
   onSubmit?: (
     e: React.FormEvent<HTMLFormElement>,
     data?: Record<string, unknown>,
   ) => void;
+  /** Form definition object */
   form: FormDto;
+  /** Optional configuration overrides for the Umbraco form */
   config?: Partial<UmbracoFormConfig>;
+  /** Custom render function for the form */
   renderForm?: RenderFn<typeof defaultComponents.Form>;
+  /** Custom render function for a page within the form */
   renderPage?: RenderFn<typeof defaultComponents.Page>;
+  /** Custom render function for a fieldset within the form */
   renderFieldset?: RenderFn<typeof defaultComponents.Fieldset>;
+  /** Custom render function for a column within the form */
   renderColumn?: RenderFn<typeof defaultComponents.Column>;
+  /** Custom render function for a field within the form */
   renderField?: RenderFn<typeof defaultComponents.Field>;
+  /** Custom render function for a specific field type within the form */
   renderFieldType?: RenderFn<typeof defaultComponents.FieldType>;
+  /** Custom render function for the validation summary */
   renderValidationSummary?: RenderFn<
     typeof defaultComponents.ValidationSummary
   >;
+  /** Custom render function for the submit button */
   renderSubmitButton?: RenderFn<typeof defaultComponents.SubmitButton>;
+  /** Custom render function for the next button in multi-step forms */
   renderNextButton?: RenderFn<typeof defaultComponents.NextButton>;
+  /** Custom render function for the previous button in multi-step forms */
   renderPreviousButton?: RenderFn<typeof defaultComponents.PreviousButton>;
 }
 
@@ -163,7 +176,6 @@ function UmbracoForm(props: UmbracoFormProps) {
       )
     ) {
       // prevent user from going to next page if there are fields with issues on the current page
-
       setAttemptCount((prev) => prev + 1);
       if (form.showValidationSummary) {
         setSummaryIssues(pageIssues);
@@ -178,18 +190,20 @@ function UmbracoForm(props: UmbracoFormProps) {
       const field = e.target;
       const formData = new FormData(e.currentTarget);
       const fieldsOnPage = getAllFieldsOnPage(activePage);
+
       // omit fields that are not on the current page
       const coercedData = Object.fromEntries(
         Object.entries(coerceFormData(formData, config.schema)).filter(
           ([key]) => fieldsOnPage?.some((field) => field?.alias === key),
         ),
       );
+
       setInternalData((prev) => {
         // merge data with previous data (from prior pages)
         return !prev ? coercedData : { ...prev, ...coercedData };
       });
 
-      if (config.shouldValidate) {
+      if (config.shouldValidate && config.shouldUseNativeValidation === false) {
         const validateOnChange =
           config.validateMode === "onChange" ||
           config.validateMode === "all" ||
@@ -218,7 +232,7 @@ function UmbracoForm(props: UmbracoFormProps) {
       const formData = new FormData(e.currentTarget as HTMLFormElement);
       const coercedData = coerceFormData(formData, config.schema);
 
-      if (config.shouldValidate) {
+      if (config.shouldValidate && config.shouldUseNativeValidation === false) {
         const validateOnBlur =
           config.validateMode === "onBlur" ||
           config.validateMode === "all" ||
@@ -291,7 +305,7 @@ function UmbracoForm(props: UmbracoFormProps) {
 
   const handleOnSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
-      if (config.shouldValidate) {
+      if (config.shouldValidate && config.shouldUseNativeValidation === false) {
         e.preventDefault();
         if (totalPages > 1 && currentPageIndex !== totalPages - 1) {
           return handleNextPage();
@@ -434,11 +448,13 @@ UmbracoForm.Fieldset = defaultComponents.Fieldset;
 UmbracoForm.Column = defaultComponents.Column;
 UmbracoForm.Field = defaultComponents.Field;
 UmbracoForm.SubmitButton = defaultComponents.SubmitButton;
+UmbracoForm.NextButton = defaultComponents.NextButton;
+UmbracoForm.PreviousButton = defaultComponents.PreviousButton;
 UmbracoForm.ValidationSummary = defaultComponents.ValidationSummary;
 
 export {
   umbracoFormToZod,
-  umbracoFormPagesToZodArray,
+  umbracoFormPagesToZodSchemas,
   coerceFormData,
   UmbracoForm,
 };
