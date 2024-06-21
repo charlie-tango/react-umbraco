@@ -12,6 +12,7 @@ import {
   DefaultFieldType,
   type FormDto,
   type FormFieldDto,
+  type FormPageDto,
   type UmbracoFormSchema,
 } from "./types";
 
@@ -93,6 +94,19 @@ function mapFieldsToZodObject(
   return z.object(mappedFields);
 }
 
+export function umbracoFormPageToZodSchema(
+  form: FormDto,
+  page: FormPageDto,
+  mapCustomFieldToZodType?: MapFormFieldToZodFn,
+): UmbracoFormSchema {
+  const fields = getAllFieldsOnPage(page).filter(
+    (field) => field.id !== DefaultFieldType.TitleAndDescription,
+  );
+  return mapFieldsToZodObject(fields).superRefine(
+    refineForConditionals(form, fields, mapCustomFieldToZodType),
+  ) as UmbracoFormSchema;
+}
+
 /**
  * Converts Umbraco form pages to an array of Zod schemas.
  *
@@ -105,20 +119,15 @@ export function umbracoFormPagesToZodSchemas(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): UmbracoFormSchema[] {
-  const pageSchemas = form?.pages?.map((page) => {
-    const fields = getAllFieldsOnPage(page).filter(
-      (field) => field.id !== DefaultFieldType.TitleAndDescription,
-    );
-    return mapFieldsToZodObject(fields, mapCustomFieldToZodType).superRefine(
-      refineForConditionals(form, fields, mapCustomFieldToZodType),
-    );
-  });
+  const pageSchemas = form?.pages?.map((page) =>
+    umbracoFormPageToZodSchema(form, page, mapCustomFieldToZodType),
+  );
   return pageSchemas as UmbracoFormSchema[];
 }
 
 /** converts an umbraco form definition to a zod schema
  * @see https://docs.umbraco.com/umbraco-forms/developer/ajaxforms#requesting-a-form-definition */
-export function umbracoFormToZod(
+export function umbracoFormToZodSchema(
   form: FormDto,
   mapCustomFieldToZodType?: MapFormFieldToZodFn,
 ): UmbracoFormSchema {

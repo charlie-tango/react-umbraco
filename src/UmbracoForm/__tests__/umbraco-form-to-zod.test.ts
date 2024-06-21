@@ -5,7 +5,7 @@ import type { FormDto, FormFieldDto } from "../types";
 import {
   type MapFormFieldToZodFn,
   mapFieldToZod,
-  umbracoFormToZod,
+  umbracoFormToZodSchema,
 } from "../umbraco-form-to-zod";
 import formDefinition from "./__fixtures__/UmbracoForm.fixture.json";
 
@@ -66,7 +66,7 @@ describe("mapFieldToZod", () => {
 
 describe("umbracoFormToZod", () => {
   test.skip("should convert form definition to zod schema", () => {
-    const schema = umbracoFormToZod(formDefinition as FormDto);
+    const schema = umbracoFormToZodSchema(formDefinition as FormDto);
     expect(schema).toBeInstanceOf(z.ZodType);
     expect(schema).toMatchSnapshot();
   });
@@ -82,7 +82,7 @@ describe("umbracoFormToZod", () => {
       tickToAddMoreInfo: true,
       moreInfo: "",
     };
-    const schema = umbracoFormToZod(formDefinition as FormDto);
+    const schema = umbracoFormToZodSchema(formDefinition as FormDto);
     const fields = getAllFields(formDefinition as FormDto);
     const moreInfoField = fields.find((field) => field?.alias === "moreInfo");
     expect(moreInfoField?.condition?.actionType).toBe("Show");

@@ -1,7 +1,8 @@
 export { UmbracoRichText } from "./UmbracoRichText";
 export {
   UmbracoForm,
-  umbracoFormToZod,
+  umbracoFormToZodSchema,
+  umbracoFormPageToZodSchema,
   umbracoFormPagesToZodSchemas,
   coerceFormData,
 } from "./UmbracoForm";

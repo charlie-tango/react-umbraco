@@ -17,8 +17,9 @@ import type { DtoWithCondition, FormDto, UmbracoFormConfig } from "./types";
 import {
   coerceFormData,
   sortZodIssuesByFieldAlias,
+  umbracoFormPageToZodSchema,
   umbracoFormPagesToZodSchemas,
-  umbracoFormToZod,
+  umbracoFormToZodSchema,
 } from "./umbraco-form-to-zod";
 
 // biome-ignore lint/suspicious/noExplicitAny: allow for any type
@@ -85,7 +86,7 @@ function UmbracoForm(props: UmbracoFormProps) {
   } = props;
 
   const config = {
-    schema: configOverride?.schema ?? umbracoFormToZod(form),
+    schema: configOverride?.schema ?? umbracoFormToZodSchema(form),
     shouldValidate: false,
     shouldUseNativeValidation: false,
     validateMode: "onSubmit",
@@ -453,7 +454,8 @@ UmbracoForm.PreviousButton = defaultComponents.PreviousButton;
 UmbracoForm.ValidationSummary = defaultComponents.ValidationSummary;
 
 export {
-  umbracoFormToZod,
+  umbracoFormToZodSchema,
+  umbracoFormPageToZodSchema,
   umbracoFormPagesToZodSchemas,
   coerceFormData,
   UmbracoForm,
