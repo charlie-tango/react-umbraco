@@ -97,6 +97,20 @@ interface RichTextProps {
    * @returns A React node, `null` to render nothing, or `undefined` to fallback to the default element
    */
   renderNode?: (node: RenderNodeContext) => React.ReactNode | undefined;
+  /** Default attributes for HTML elements, used to add default classes to all `<p>` tags.
+   * If the html element contains its own attributes, then they will override the default.
+   *
+   * ```tsx
+   * <RichText
+   *    htmlAttributes={{
+   *      p: { className: 'text-base' },
+   *      h1: { className: 'text-2xl' },
+   *    }}
+   *  />
+   *  */
+  htmlAttributes?: Partial<{
+    [Tag in keyof React.JSX.IntrinsicElements]: React.JSX.IntrinsicElements[Tag];
+  }>;
 }
 
 export type RichTextElementModel =
@@ -136,6 +150,7 @@ function RichTextElement({
   blocks,
   renderBlock,
   renderNode,
+  htmlAttributes = {},
   meta,
 }: {
   element: RichTextElementModel;
@@ -147,7 +162,7 @@ function RichTextElement({
         previous?: string;
       }
     | undefined;
-} & Pick<RichTextProps, "renderBlock" | "renderNode">) {
+} & Pick<RichTextProps, "renderBlock" | "renderNode" | "htmlAttributes">) {
   if (!element || element.tag === "#comment") return null;
   if (element.tag === "#text") {
     // Decode HTML entities in text nodes
@@ -208,7 +223,10 @@ function RichTextElement({
     const output = renderNode({
       // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using `any`. The type will be corrected in the implementation.
       tag: element.tag as any,
-      attributes,
+      attributes: {
+        ...htmlAttributes[element.tag],
+        ...attributes,
+      } as Record<string, unknown>,
       children,
       route,
       meta: meta || {},
@@ -223,7 +241,9 @@ function RichTextElement({
 
   return React.createElement(
     element.tag,
-    attributes as React.Attributes,
+    htmlAttributes[element.tag]
+      ? { ...htmlAttributes[element.tag], ...attributes }
+      : attributes,
     children,
   );
 }
@@ -243,6 +263,7 @@ export function UmbracoRichText(props: RichTextProps) {
             blocks={rootElement.blocks}
             renderBlock={props.renderBlock}
             renderNode={props.renderNode}
+            htmlAttributes={props.htmlAttributes}
             meta={undefined}
           />
         ))}

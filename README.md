@@ -28,6 +28,7 @@ it with React.
 - `renderBlock`: Render a specific block type.
 - `renderNode`: Overwrite the default rendering of a node. Return `undefined` to
   render the default node. Return `null` to skip rendering the node.
+- `htmlAttributes`: Default attributes to set on the defined HTML elements.
 
 When passing the `renderBlock` and `renderNode` props, consider making them
 static functions (move them outside the consuming component) to avoid
@@ -74,6 +75,7 @@ function RichText({ data }) {
       element={data.richText}
       renderNode={renderNode}
       renderBlock={renderBlock}
+      htmlAttributes={{ p: "mb-4" }}
     />
   );
 }
