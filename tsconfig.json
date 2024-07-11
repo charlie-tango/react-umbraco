@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ESNext",
     "lib": ["ESNext", "dom"],
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "@vitest/browser/providers/playwright"],
     "module": "ESNext",
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",
