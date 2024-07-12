@@ -17,7 +17,7 @@ npm install @charlietango/react-umbraco
 
 ### `<UmbracoRichText>`
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/charlie-tango/react-umbraco/tree/main/examples/UmbracoRichText?file=src/RichText.tsx)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/charlie-tango/react-umbraco/tree/main?file=examples/UmbracoRichText/src/RichText.tsx)
 
 Takes the rich text property from the Umbraco Content Delivery API and renders
 it with React.

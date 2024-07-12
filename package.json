@@ -39,8 +39,10 @@
     "release": "bumpp && npm publish",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "prepare": "simple-git-hooks",
-    "test:browser": "vitest --workspace=vitest.workspace.ts"
+    "prepare": "simple-git-hooks"
+  },
+  "stackblitz": {
+    "startCommand": "pnpm --filter=react-umbraco-example dev"
   },
   "dependencies": {
     "html-entities": "^2.5.2"
