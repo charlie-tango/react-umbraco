@@ -206,13 +206,18 @@ function RichTextElement({
   }
 
   const { route, style, class: className, ...attributes } = element.attributes;
-
+  const defaultAttributes = htmlAttributes[element.tag];
   if (element.tag === "a") {
     attributes.href = route?.path;
   }
 
   if (className) {
-    attributes.className = className;
+    if (defaultAttributes?.className) {
+      // Merge the default class with the class attribute
+      attributes.className = `${defaultAttributes.className} ${className}`;
+    } else {
+      attributes.className = className;
+    }
   }
 
   if (typeof style === "string") {
@@ -221,10 +226,10 @@ function RichTextElement({
 
   if (renderNode) {
     const output = renderNode({
-      // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using `any`. The type will be corrected in the implementation.
+      // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using any. The type will be corrected in the implementation.
       tag: element.tag as any,
       attributes: {
-        ...htmlAttributes[element.tag],
+        ...defaultAttributes,
         ...attributes,
       } as Record<string, unknown>,
       children,
@@ -242,7 +247,7 @@ function RichTextElement({
   return React.createElement(
     element.tag,
     htmlAttributes[element.tag]
-      ? { ...htmlAttributes[element.tag], ...attributes }
+      ? { ...defaultAttributes, ...attributes }
       : attributes,
     children,
   );

@@ -29,6 +29,9 @@ it with React.
 - `renderNode`: Overwrite the default rendering of a node. Return `undefined` to
   render the default node. Return `null` to skip rendering the node.
 - `htmlAttributes`: Default attributes to set on the defined HTML elements.
+  These will be used, unless the element already has the attribute set. The only
+  exception is the `className` attribute, which will be merged with the default
+  value.
 
 When passing the `renderBlock` and `renderNode` props, consider making them
 static functions (move them outside the consuming component) to avoid

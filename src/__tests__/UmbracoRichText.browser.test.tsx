@@ -329,8 +329,54 @@ it("should handle default attributes for elements", () => {
   const headings = screen.getAllByRole("heading");
   expect(headings[0]).toHaveClass("text-2xl");
   expect(headings[0]).toHaveAttribute("style", "color: red;");
-  expect(headings[1]).toHaveClass("pre-styled"); // `h2` has a class by default. It should not be overridden.
+  expect(headings[1]).toHaveClass("text-1xl"); //
+  expect(headings[1]).toHaveClass("pre-styled"); // `h2` has a class by default. It should be preserved
 
   const paragraph = screen.getByRole("paragraph");
   expect(paragraph).toHaveClass("mb-4");
+});
+
+it("should handle default attributes for with renderNode", () => {
+  render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "p",
+            attributes: {},
+            elements: [
+              {
+                text: "What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself.",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+      htmlAttributes={{
+        p: { className: "mb-4" },
+        h1: { className: "text-2xl", style: { color: "red" } },
+        h2: { className: "text-1xl" },
+      }}
+      renderNode={(node) => {
+        if (node.tag === "p") {
+          return (
+            <p
+              {...node.attributes}
+              className={[node.attributes.className, "font-medium"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {node.children}
+            </p>
+          );
+        }
+      }}
+    />,
+  );
+
+  const paragraph = screen.getByRole("paragraph");
+  expect(paragraph).toHaveClass("mb-4");
+  expect(paragraph).toHaveClass("mb-4 font-medium");
 });
