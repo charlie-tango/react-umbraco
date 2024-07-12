@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.1",
   "packageManager": "pnpm@9.5.0+sha256.dbdf5961c32909fb030595a9daa1dae720162e658609a8f92f2fa99835510ca5",
-  "description": "",
+  "description": "React components for working with Umbraco Headless",
   "author": "Charlie Tango",
   "license": "MIT",
   "homepage": "https://github.com/charlie-tango/react-umbraco#readme",
