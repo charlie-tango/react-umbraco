@@ -24,6 +24,8 @@ jobs:
         run: pnpm install
       - name: Lint
         run: pnpm biome ci .
+      - name: Install playwright
+        run: pnpx playwright install chromium
       - name: Test
         run: pnpm test
         env:

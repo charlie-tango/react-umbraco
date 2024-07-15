@@ -17,7 +17,7 @@ npm install @charlietango/react-umbraco
 
 ### `<UmbracoRichText>`
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/charlie-tango/react-umbraco/tree/main/examples/UmbracoRichText?file=src/RichText.tsx)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/charlie-tango/react-umbraco/tree/main?file=examples/UmbracoRichText/src/RichText.tsx)
 
 Takes the rich text property from the Umbraco Content Delivery API and renders
 it with React.
@@ -28,6 +28,10 @@ it with React.
 - `renderBlock`: Render a specific block type.
 - `renderNode`: Overwrite the default rendering of a node. Return `undefined` to
   render the default node. Return `null` to skip rendering the node.
+- `htmlAttributes`: Default attributes to set on the defined HTML elements.
+  These will be used, unless the element already has the attribute set. The only
+  exception is the `className` attribute, which will be merged with the default
+  value.
 
 When passing the `renderBlock` and `renderNode` props, consider making them
 static functions (move them outside the consuming component) to avoid
@@ -74,6 +78,7 @@ function RichText({ data }) {
       element={data.richText}
       renderNode={renderNode}
       renderBlock={renderBlock}
+      htmlAttributes={{ p: "mb-4" }}
     />
   );
 }

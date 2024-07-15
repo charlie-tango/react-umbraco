@@ -1,4 +1,3 @@
-// @vitest-environment happy-dom
 import { render, screen } from "@testing-library/react";
 import { type RichTextElementModel, UmbracoRichText } from "../UmbracoRichText";
 import fixture from "./__fixtures__/UmbracoRichText.fixture.json";
@@ -67,7 +66,7 @@ it("should decode and render text correctly", () => {
       }}
     />,
   );
-  expect(container.firstChild?.textContent).toBe("< > \" ' & © ∆");
+  expect(container).toHaveTextContent("< > \" ' & © ∆");
 });
 
 it("should throw an error when rendering a block element without renderBlock prop ", () => {
@@ -170,9 +169,9 @@ it("should handle route-specific path attribute for the anchor href", () => {
       }}
     />,
   );
-  const anchor = screen.getByRole("link") as HTMLAnchorElement;
-  expect(anchor.href).toContain("/path");
-  expect(Object.keys(anchor.attributes)).not.toContain("route");
+  const anchor = screen.getByRole("link");
+  expect(anchor).toHaveAttribute("href", "/path");
+  expect(anchor).not.toHaveAttribute("route");
 });
 
 it("should correctly map the class attribute to className", () => {
@@ -190,7 +189,7 @@ it("should correctly map the class attribute to className", () => {
     />,
   );
   const input = screen.getByRole("textbox") as HTMLInputElement;
-  expect(Array.from(input.classList)).toContain("example-class");
+  expect(input).toHaveClass("example-class");
 });
 
 it("should properly convert style string to a CSSProperties object and pass it as the className prop to component", () => {
@@ -207,9 +206,8 @@ it("should properly convert style string to a CSSProperties object and pass it a
       }}
     />,
   );
-  const input = screen.getByRole("textbox") as HTMLInputElement;
-  expect(input.style.color).toBe("red");
-  expect(input.style.backgroundColor).toBe("blue");
+  const input = screen.getByRole("textbox");
+  expect(input).toHaveAttribute("style", "color: red; background-color: blue;");
 });
 
 it("should override default node rendering with custom renderNode prop", () => {
@@ -272,12 +270,113 @@ it("should render default node if renderNode prop returns undefined", () => {
 });
 
 it("should render fixture content correctly", () => {
-  const container = render(
+  const { container } = render(
     <UmbracoRichText
       // biome-ignore lint/suspicious/noExplicitAny:
       data={fixture as any}
       renderBlock={() => <div data-testid="block" />}
     />,
   );
-  expect(container).toMatchSnapshot();
+  expect(container.innerHTML).toMatchSnapshot();
+});
+
+it("should handle default attributes for elements", () => {
+  render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "h1",
+            attributes: {},
+            elements: [
+              {
+                text: "Welcome",
+                tag: "#text",
+              },
+            ],
+          },
+          {
+            tag: "p",
+            attributes: {},
+            elements: [
+              {
+                text: "What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself.",
+                tag: "#text",
+              },
+            ],
+          },
+          {
+            tag: "h2",
+            attributes: { class: "pre-styled" },
+            elements: [
+              {
+                text: "h2 is already styled",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+      htmlAttributes={{
+        p: { className: "mb-4" },
+        h1: { className: "text-2xl", style: { color: "red" } },
+        h2: { className: "text-1xl" },
+      }}
+    />,
+  );
+
+  const headings = screen.getAllByRole("heading");
+  expect(headings[0]).toHaveClass("text-2xl");
+  expect(headings[0]).toHaveAttribute("style", "color: red;");
+  expect(headings[1]).toHaveClass("text-1xl"); //
+  expect(headings[1]).toHaveClass("pre-styled"); // `h2` has a class by default. It should be preserved
+
+  const paragraph = screen.getByRole("paragraph");
+  expect(paragraph).toHaveClass("mb-4");
+});
+
+it("should handle default attributes for with renderNode", () => {
+  render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "p",
+            attributes: {},
+            elements: [
+              {
+                text: "What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself.",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+      htmlAttributes={{
+        p: { className: "mb-4" },
+        h1: { className: "text-2xl", style: { color: "red" } },
+        h2: { className: "text-1xl" },
+      }}
+      renderNode={(node) => {
+        if (node.tag === "p") {
+          return (
+            <p
+              {...node.attributes}
+              className={[node.attributes.className, "font-medium"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              {node.children}
+            </p>
+          );
+        }
+      }}
+    />,
+  );
+
+  const paragraph = screen.getByRole("paragraph");
+  expect(paragraph).toHaveClass("mb-4");
+  expect(paragraph).toHaveClass("mb-4 font-medium");
 });
