@@ -2,7 +2,7 @@
   "name": "@charlietango/react-umbraco",
   "private": false,
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "packageManager": "pnpm@9.5.0+sha256.dbdf5961c32909fb030595a9daa1dae720162e658609a8f92f2fa99835510ca5",
   "description": "React components for working with Umbraco Headless",
   "author": "Charlie Tango",
