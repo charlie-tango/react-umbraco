@@ -152,6 +152,28 @@ it("should render an inline block element using the renderBlock prop", () => {
     `);
 });
 
+it("should handle href attribute on links", () => {
+  render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "a",
+            attributes: {
+              href: "/path",
+            },
+            elements: [{ tag: "#text", text: "text" }],
+          },
+        ],
+      }}
+    />,
+  );
+  const anchor = screen.getByRole("link");
+  expect(anchor).toHaveAttribute("href", "/path");
+  expect(anchor).not.toHaveAttribute("route");
+});
+
 it("should handle route-specific path attribute for the anchor href", () => {
   render(
     <UmbracoRichText
