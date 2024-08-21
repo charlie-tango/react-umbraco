@@ -207,7 +207,7 @@ function RichTextElement({
 
   const { route, style, class: className, ...attributes } = element.attributes;
   const defaultAttributes = htmlAttributes[element.tag];
-  if (element.tag === "a") {
+  if (element.tag === "a" && route?.path) {
     attributes.href = route?.path;
   }
 
