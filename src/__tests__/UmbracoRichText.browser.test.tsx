@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render } from "vitest-browser-react";
 import { type RichTextElementModel, UmbracoRichText } from "../UmbracoRichText";
 import fixture from "./__fixtures__/UmbracoRichText.fixture.json";
 
@@ -91,69 +91,57 @@ it("should throw an error when rendering a block element without renderBlock pro
 });
 
 it("should render a block element using the renderBlock prop", () => {
-  expect(() =>
-    render(
-      <UmbracoRichText
-        data={{
-          tag: "#root",
-          blocks: [{ content: { id: "1", properties: {} } }],
-          elements: [
-            {
-              tag: "umb-rte-block",
-              attributes: { "content-id": "1" },
-              elements: [],
-            },
-          ],
-        }}
-        renderBlock={(block) => (
-          <div data-testid="umb-rte-block">{block?.content?.id}</div>
-        )}
-      />,
-    ),
-  ).not.toThrowError();
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        blocks: [{ content: { id: "1", properties: {} } }],
+        elements: [
+          {
+            tag: "umb-rte-block",
+            attributes: { "content-id": "1" },
+            elements: [],
+          },
+        ],
+      }}
+      renderBlock={(block) => (
+        <div data-testid="umb-rte-block">{block?.content?.id}</div>
+      )}
+    />,
+  );
 
-  expect(screen.getByTestId("umb-rte-block")).toMatchInlineSnapshot(`
-      <div
-        data-testid="umb-rte-block"
-      >
-        1
-      </div>
-    `);
+  expect(
+    screen.getByTestId("umb-rte-block").element().outerHTML,
+  ).toMatchInlineSnapshot(`"<div data-testid="umb-rte-block">1</div>"`);
 });
 
 it("should render an inline block element using the renderBlock prop", () => {
-  expect(() =>
-    render(
-      <UmbracoRichText
-        data={{
-          tag: "#root",
-          blocks: [{ content: { id: "1", properties: {} } }],
-          elements: [
-            {
-              tag: "umb-rte-block-inline",
-              attributes: { "content-id": "1" },
-              elements: [],
-            },
-          ],
-        }}
-        renderBlock={(block) => (
-          <div data-testid="umb-rte-block-inline">{block?.content?.id}</div>
-        )}
-      />,
-    ),
-  ).not.toThrowError();
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        blocks: [{ content: { id: "1", properties: {} } }],
+        elements: [
+          {
+            tag: "umb-rte-block-inline",
+            attributes: { "content-id": "1" },
+            elements: [],
+          },
+        ],
+      }}
+      renderBlock={(block) => (
+        <div data-testid="umb-rte-block-inline">{block?.content?.id}</div>
+      )}
+    />,
+  );
 
-  expect(screen.getByTestId("umb-rte-block-inline")).toMatchInlineSnapshot(`
-      <div
-        data-testid="umb-rte-block-inline"
-      >
-        1
-      </div>
-    `);
+  expect(
+    screen.getByTestId("umb-rte-block-inline").element().outerHTML,
+  ).toMatchInlineSnapshot(`"<div data-testid="umb-rte-block-inline">1</div>"`);
 });
 
 it("should handle href attribute on links", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -169,13 +157,13 @@ it("should handle href attribute on links", () => {
       }}
     />,
   );
-  const anchor = screen.getByRole("link");
+  const anchor = screen.getByRole("link").element();
   expect(anchor).toHaveAttribute("href", "/path");
   expect(anchor).not.toHaveAttribute("route");
 });
 
 it("should handle route-specific path attribute for the anchor href", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -191,13 +179,13 @@ it("should handle route-specific path attribute for the anchor href", () => {
       }}
     />,
   );
-  const anchor = screen.getByRole("link");
+  const anchor = screen.getByRole("link").element();
   expect(anchor).toHaveAttribute("href", "/path");
   expect(anchor).not.toHaveAttribute("route");
 });
 
 it("should correctly map the class attribute to className", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -210,12 +198,12 @@ it("should correctly map the class attribute to className", () => {
       }}
     />,
   );
-  const input = screen.getByRole("textbox") as HTMLInputElement;
+  const input = screen.getByRole("textbox").element();
   expect(input).toHaveClass("example-class");
 });
 
 it("should properly convert style string to a CSSProperties object and pass it as the className prop to component", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -228,12 +216,12 @@ it("should properly convert style string to a CSSProperties object and pass it a
       }}
     />,
   );
-  const input = screen.getByRole("textbox");
+  const input = screen.getByRole("textbox").element();
   expect(input).toHaveAttribute("style", "color: red; background-color: blue;");
 });
 
 it("should override default node rendering with custom renderNode prop", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -247,12 +235,12 @@ it("should override default node rendering with custom renderNode prop", () => {
       renderNode={(node) => <div data-testid="custom-node">{node.tag}</div>}
     />,
   );
-  const customNode = screen.getByTestId("custom-node") as HTMLElement;
-  expect(customNode.tagName).toBe("DIV");
+  const customNode = screen.getByTestId("custom-node");
+  expect(customNode.element().tagName).toBe("DIV");
 });
 
 it("should not render node if renderNode prop returns null", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -268,11 +256,11 @@ it("should not render node if renderNode prop returns null", () => {
       renderNode={() => null}
     />,
   );
-  expect(screen.queryByTestId("default-rendering")).toBeNull();
+  expect(() => screen.getByTestId("default-rendering").element()).to.throw();
 });
 
 it("should render default node if renderNode prop returns undefined", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -288,22 +276,22 @@ it("should render default node if renderNode prop returns undefined", () => {
       renderNode={() => undefined}
     />,
   );
-  expect(screen.queryByTestId("default-rendering")).not.toBeNull();
+  expect(screen.getByTestId("default-rendering")).not.toBeNull();
 });
 
 it("should render fixture content correctly", () => {
-  const { container } = render(
+  const screen = render(
     <UmbracoRichText
       // biome-ignore lint/suspicious/noExplicitAny:
       data={fixture as any}
       renderBlock={() => <div data-testid="block" />}
     />,
   );
-  expect(container.innerHTML).toMatchSnapshot();
+  expect(screen.container.innerHTML).toMatchSnapshot();
 });
 
 it("should handle default attributes for elements", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -348,18 +336,19 @@ it("should handle default attributes for elements", () => {
     />,
   );
 
-  const headings = screen.getAllByRole("heading");
-  expect(headings[0]).toHaveClass("text-2xl");
-  expect(headings[0]).toHaveAttribute("style", "color: red;");
-  expect(headings[1]).toHaveClass("text-1xl"); //
-  expect(headings[1]).toHaveClass("pre-styled"); // `h2` has a class by default. It should be preserved
+  const headings = screen.getByRole("heading").all();
+  const h1 = headings[0].element();
+  expect(h1).toHaveClass("text-2xl");
+  expect(h1).toHaveAttribute("style", "color: red;");
+  expect(headings[1].element()).toHaveClass("text-1xl"); //
+  expect(headings[1].element()).toHaveClass("pre-styled"); // `h2` has a class by default. It should be preserved
 
   const paragraph = screen.getByRole("paragraph");
-  expect(paragraph).toHaveClass("mb-4");
+  expect(paragraph.element()).toHaveClass("mb-4");
 });
 
 it("should handle default attributes for with renderNode", () => {
-  render(
+  const screen = render(
     <UmbracoRichText
       data={{
         tag: "#root",
@@ -398,7 +387,7 @@ it("should handle default attributes for with renderNode", () => {
     />,
   );
 
-  const paragraph = screen.getByRole("paragraph");
+  const paragraph = screen.getByRole("paragraph").element();
   expect(paragraph).toHaveClass("mb-4");
   expect(paragraph).toHaveClass("mb-4 font-medium");
 });
