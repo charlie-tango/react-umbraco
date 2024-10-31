@@ -336,12 +336,14 @@ it("should handle default attributes for elements", () => {
     />,
   );
 
-  const headings = screen.getByRole("heading").all();
-  const h1 = headings[0].element();
+  const [h1, h2] = screen
+    .getByRole("heading")
+    .all()
+    .map((heading) => heading.element());
   expect(h1).toHaveClass("text-2xl");
   expect(h1).toHaveAttribute("style", "color: red;");
-  expect(headings[1].element()).toHaveClass("text-1xl"); //
-  expect(headings[1].element()).toHaveClass("pre-styled"); // `h2` has a class by default. It should be preserved
+  expect(h2).toHaveClass("text-1xl"); //
+  expect(h2).toHaveClass("pre-styled"); // `h2` has a class by default. It should be preserved
 
   const paragraph = screen.getByRole("paragraph");
   expect(paragraph.element()).toHaveClass("mb-4");
