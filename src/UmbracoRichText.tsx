@@ -1,53 +1,11 @@
 import { decode } from "html-entities";
 import React from "react";
-import type { Overwrite } from "./utils/helper-types";
+import type {
+  RichTextElementModel,
+  RouteAttributes,
+  UmbracoBlockContext,
+} from "./types/RichTextTypes";
 import { parseStyle } from "./utils/parse-style";
-
-interface BaseBlockItemModel {
-  content?: {
-    id: string;
-    properties: {
-      [key: string]: unknown;
-    };
-  };
-  settings?: {
-    id: string;
-    properties: {
-      [key: string]: unknown;
-    };
-  };
-}
-
-/**
- * Override the block item model with Umbraco specific properties.
- * This way you can get the full type safety of the Umbraco API you are using.
- *
- * **react-umbraco.d.ts**
- * ```ts
- * import { components } from '@/openapi/umbraco';
- *
- * // Define the intermediate interface
- * type ApiBlockItemModel = components['schemas']['ApiBlockItemModel'];
- *
- * declare module '@charlietango/react-umbraco' {
- *   interface UmbracoBlockItemModel extends ApiBlockItemModel {}
- * }
- * ```
- */
-export type UmbracoBlockItemModel = {};
-
-export type RenderBlockContext = Overwrite<
-  BaseBlockItemModel,
-  UmbracoBlockItemModel
->;
-
-interface RouteAttributes {
-  path: string;
-  startItem: {
-    id: string;
-    path: string;
-  };
-}
 
 interface NodeMeta {
   /** The tag of the parent element */
@@ -81,16 +39,8 @@ export type RenderNodeContext = {
 );
 
 interface RichTextProps {
-  data:
-    | {
-        /** List as `string` so it matches generated type from Umbraco. In reality, the value of the root `tag` must be `#root` */
-        tag: string;
-        attributes?: Record<string, unknown>;
-        elements?: RichTextElementModel[];
-        blocks?: Array<RenderBlockContext>;
-      }
-    | undefined;
-  renderBlock?: (block: RenderBlockContext) => React.ReactNode;
+  data: RichTextElementModel | undefined;
+  renderBlock?: (block: UmbracoBlockContext) => React.ReactNode;
   /**
    * Render an HTML node with custom logic.
    * @param node
@@ -113,35 +63,6 @@ interface RichTextProps {
   }>;
 }
 
-export type RichTextElementModel =
-  | {
-      tag: "#text";
-      text: string;
-    }
-  | {
-      tag: "#comment";
-      text: string;
-    }
-  | {
-      tag: "umb-rte-block";
-      attributes: {
-        "content-id": string;
-      };
-      elements: RichTextElementModel[];
-    }
-  | {
-      tag: "umb-rte-block-inline";
-      attributes: {
-        "content-id": string;
-      };
-      elements: RichTextElementModel[];
-    }
-  | {
-      tag: keyof React.JSX.IntrinsicElements;
-      attributes: Record<string, unknown> & { route?: RouteAttributes };
-      elements?: RichTextElementModel[];
-    };
-
 /**
  * Render the individual elements of the rich text
  */
@@ -154,7 +75,7 @@ function RichTextElement({
   meta,
 }: {
   element: RichTextElementModel;
-  blocks: Array<RenderBlockContext> | undefined;
+  blocks: Array<UmbracoBlockContext> | undefined;
   meta:
     | {
         ancestor?: string;
@@ -163,7 +84,8 @@ function RichTextElement({
       }
     | undefined;
 } & Pick<RichTextProps, "renderBlock" | "renderNode" | "htmlAttributes">) {
-  if (!element || element.tag === "#comment") return null;
+  if (!element || element.tag === "#comment" || element.tag === "#root")
+    return null;
   if (element.tag === "#text") {
     // Decode HTML entities in text nodes
     return decode(element.text);

@@ -110,6 +110,27 @@ declare module "@charlietango/react-umbraco" {
 }
 ```
 
+### `richTextToPlainText`
+
+A useful method to convert the rich text property to plain text. This can be
+used to generate meta descriptions or other text-based properties.
+
+```ts
+import { richTextToPlainText } from "@charlietango/react-umbraco";
+
+const plainText = richTextToPlainText(richTextData);
+
+// Just the first paragraph
+const firstParagraph = richTextToPlainText(richTextData, {
+  firstParagraph: true,
+});
+
+// Just the first 100 characters, truncated at the nearest word with an ellipsis
+const first100Characters = richTextToPlainText(richTextData, {
+  maxLength: 100,
+});
+```
+
 <!-- Badges -->
 
 [npm-version-src]:
