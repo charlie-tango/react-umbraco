@@ -1,53 +1,15 @@
 import { decode } from "html-entities";
 import React from "react";
-import type { Overwrite } from "./utils/helper-types";
+import {
+  type RenderBlockContext,
+  type RichTextElementModel,
+  type RouteAttributes,
+  isHtmlElement,
+  isRootElement,
+  isTextElement,
+  isUmbracoBlock,
+} from "./types/RichTextTypes";
 import { parseStyle } from "./utils/parse-style";
-
-interface BaseBlockItemModel {
-  content?: {
-    id: string;
-    properties: {
-      [key: string]: unknown;
-    };
-  };
-  settings?: {
-    id: string;
-    properties: {
-      [key: string]: unknown;
-    };
-  };
-}
-
-/**
- * Override the block item model with Umbraco specific properties.
- * This way you can get the full type safety of the Umbraco API you are using.
- *
- * **react-umbraco.d.ts**
- * ```ts
- * import { components } from '@/openapi/umbraco';
- *
- * // Define the intermediate interface
- * type ApiBlockItemModel = components['schemas']['ApiBlockItemModel'];
- *
- * declare module '@charlietango/react-umbraco' {
- *   interface UmbracoBlockItemModel extends ApiBlockItemModel {}
- * }
- * ```
- */
-export type UmbracoBlockItemModel = {};
-
-export type RenderBlockContext = Overwrite<
-  BaseBlockItemModel,
-  UmbracoBlockItemModel
->;
-
-interface RouteAttributes {
-  path: string;
-  startItem: {
-    id: string;
-    path: string;
-  };
-}
 
 interface NodeMeta {
   /** The tag of the parent element */
@@ -81,15 +43,7 @@ export type RenderNodeContext = {
 );
 
 interface RichTextProps {
-  data:
-    | {
-        /** List as `string` so it matches generated type from Umbraco. In reality, the value of the root `tag` must be `#root` */
-        tag: string;
-        attributes?: Record<string, unknown>;
-        elements?: RichTextElementModel[];
-        blocks?: Array<RenderBlockContext>;
-      }
-    | undefined;
+  data: RichTextElementModel | undefined;
   renderBlock?: (block: RenderBlockContext) => React.ReactNode;
   /**
    * Render an HTML node with custom logic.
@@ -113,35 +67,6 @@ interface RichTextProps {
   }>;
 }
 
-export type RichTextElementModel =
-  | {
-      tag: "#text";
-      text: string;
-    }
-  | {
-      tag: "#comment";
-      text: string;
-    }
-  | {
-      tag: "umb-rte-block";
-      attributes: {
-        "content-id": string;
-      };
-      elements: RichTextElementModel[];
-    }
-  | {
-      tag: "umb-rte-block-inline";
-      attributes: {
-        "content-id": string;
-      };
-      elements: RichTextElementModel[];
-    }
-  | {
-      tag: keyof React.JSX.IntrinsicElements;
-      attributes: Record<string, unknown> & { route?: RouteAttributes };
-      elements?: RichTextElementModel[];
-    };
-
 /**
  * Render the individual elements of the rich text
  */
@@ -163,35 +88,18 @@ function RichTextElement({
       }
     | undefined;
 } & Pick<RichTextProps, "renderBlock" | "renderNode" | "htmlAttributes">) {
-  if (!element || element.tag === "#comment") return null;
-  if (element.tag === "#text") {
+  if (!element || element.tag === "#comment" || element.tag === "#root")
+    return null;
+
+  if (isTextElement(element)) {
     // Decode HTML entities in text nodes
     return decode(element.text);
   }
 
-  let children = element.elements?.map((node, index) => (
-    <RichTextElement
-      key={index}
-      element={node}
-      blocks={blocks}
-      renderBlock={renderBlock}
-      renderNode={renderNode}
-      meta={{
-        ancestor: element.tag,
-        previous: element.elements?.[index - 1]?.tag,
-        next: element.elements?.[index + 1]?.tag,
-      }}
-    />
-  ));
-  if (!children?.length) children = undefined;
-
   // If the tag is a block, skip the normal rendering and render the block
-  if (
-    element.tag === "umb-rte-block" ||
-    element.tag === "umb-rte-block-inline"
-  ) {
+  if (isUmbracoBlock(element)) {
     const block = blocks?.find(
-      (block) => block.content?.id === element.attributes["content-id"],
+      (block) => block.content?.id === element.attributes?.["content-id"],
     );
     if (renderBlock && block) {
       return renderBlock(block);
@@ -204,53 +112,79 @@ function RichTextElement({
 
     return null;
   }
-
-  const { route, style, class: className, ...attributes } = element.attributes;
-  const defaultAttributes = htmlAttributes[element.tag];
-  if (element.tag === "a" && route?.path) {
-    attributes.href = route?.path;
-  }
-
-  if (className) {
-    if (defaultAttributes?.className) {
-      // Merge the default class with the class attribute
-      attributes.className = `${defaultAttributes.className} ${className}`;
-    } else {
-      attributes.className = className;
+  let children: Array<React.ReactNode> | undefined = undefined;
+  if (isHtmlElement(element)) {
+    children = element.elements?.map((node, index) => (
+      <RichTextElement
+        key={index}
+        element={node}
+        blocks={blocks}
+        renderBlock={renderBlock}
+        renderNode={renderNode}
+        meta={{
+          ancestor: element.tag,
+          previous: element.elements?.[index - 1]?.tag,
+          next: element.elements?.[index + 1]?.tag,
+        }}
+      />
+    ));
+    if (children?.length === 0) {
+      children = undefined;
     }
-  }
 
-  if (typeof style === "string") {
-    attributes.style = parseStyle(style);
-  }
-
-  if (renderNode) {
-    const output = renderNode({
-      // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using any. The type will be corrected in the implementation.
-      tag: element.tag as any,
-      attributes: {
-        ...defaultAttributes,
-        ...attributes,
-      } as Record<string, unknown>,
-      children,
+    const {
       route,
-      meta: meta || {},
-    });
-
-    if (output !== undefined) {
-      // If we got a valid output from the renderElement function, we return it
-      // `null` we will render nothing, but `undefined` fallback to the default element
-      return output;
+      style,
+      class: className,
+      ...attributes
+    } = element.attributes;
+    const defaultAttributes = htmlAttributes[element.tag];
+    if (element.tag === "a" && route?.path) {
+      attributes.href = route?.path;
     }
-  }
 
-  return React.createElement(
-    element.tag,
-    htmlAttributes[element.tag]
-      ? { ...defaultAttributes, ...attributes }
-      : attributes,
-    children,
-  );
+    if (className) {
+      if (defaultAttributes?.className) {
+        // Merge the default class with the class attribute
+        attributes.className = `${defaultAttributes.className} ${className}`;
+      } else {
+        attributes.className = className;
+      }
+    }
+
+    if (typeof style === "string") {
+      attributes.style = parseStyle(style);
+    }
+
+    if (renderNode) {
+      const output = renderNode({
+        // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using any. The type will be corrected in the implementation.
+        tag: element.tag as any,
+        attributes: {
+          ...defaultAttributes,
+          ...attributes,
+        } as Record<string, unknown>,
+        children,
+        route,
+        meta: meta || {},
+      });
+
+      if (output !== undefined) {
+        // If we got a valid output from the renderElement function, we return it
+        // `null` we will render nothing, but `undefined` fallback to the default element
+        return output;
+      }
+    }
+
+    return React.createElement(
+      element.tag,
+      htmlAttributes[element.tag]
+        ? { ...defaultAttributes, ...attributes }
+        : attributes,
+      children,
+    );
+  }
+  return undefined;
 }
 
 /**
@@ -258,10 +192,10 @@ function RichTextElement({
  */
 export function UmbracoRichText(props: RichTextProps) {
   const rootElement = props.data;
-  if (rootElement?.tag === "#root" && rootElement.elements) {
+  if (isRootElement(rootElement)) {
     return (
       <>
-        {rootElement.elements.map((element, index) => (
+        {rootElement.elements?.map((element, index) => (
           <RichTextElement
             key={index}
             element={element}

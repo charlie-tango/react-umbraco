@@ -1,5 +1,6 @@
 import { render } from "vitest-browser-react";
-import { type RichTextElementModel, UmbracoRichText } from "../UmbracoRichText";
+import { UmbracoRichText } from "../UmbracoRichText";
+import type { RichTextElementModel } from "../types/RichTextTypes";
 import fixture from "./__fixtures__/UmbracoRichText.fixture.json";
 
 /**
@@ -23,7 +24,9 @@ function nestedElements(...tags: string[]): RichTextElementModel[] {
 }
 
 it("should not render without #root tag in the root element ", () => {
-  const { container } = render(<UmbracoRichText data={{ tag: "div" }} />);
+  const { container } = render(
+    <UmbracoRichText data={{ tag: "div", attributes: {} }} />,
+  );
   expect(container.innerHTML).toEqual("");
 });
 
