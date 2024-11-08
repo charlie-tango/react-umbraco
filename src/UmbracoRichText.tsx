@@ -112,23 +112,25 @@ function RichTextElement({
 
     return null;
   }
-
+  let children: Array<React.ReactNode> | undefined = undefined;
   if (isHtmlElement(element)) {
-    const children: React.ReactNode =
-      element.elements.map((node, index) => (
-        <RichTextElement
-          key={index}
-          element={node}
-          blocks={blocks}
-          renderBlock={renderBlock}
-          renderNode={renderNode}
-          meta={{
-            ancestor: element.tag,
-            previous: element.elements?.[index - 1]?.tag,
-            next: element.elements?.[index + 1]?.tag,
-          }}
-        />
-      )) || null;
+    children = element.elements?.map((node, index) => (
+      <RichTextElement
+        key={index}
+        element={node}
+        blocks={blocks}
+        renderBlock={renderBlock}
+        renderNode={renderNode}
+        meta={{
+          ancestor: element.tag,
+          previous: element.elements?.[index - 1]?.tag,
+          next: element.elements?.[index + 1]?.tag,
+        }}
+      />
+    ));
+    if (children?.length === 0) {
+      children = undefined;
+    }
 
     const {
       route,
@@ -193,7 +195,7 @@ export function UmbracoRichText(props: RichTextProps) {
   if (isRootElement(rootElement)) {
     return (
       <>
-        {rootElement.elements.map((element, index) => (
+        {rootElement.elements?.map((element, index) => (
           <RichTextElement
             key={index}
             element={element}

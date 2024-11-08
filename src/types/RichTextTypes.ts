@@ -3,7 +3,7 @@ import type { Overwrite } from "../utils/helper-types";
 export function isRootElement(data: RichTextElementModel | undefined): data is {
   tag: "#root";
   attributes?: Record<string, unknown>;
-  elements: RichTextElementModel[];
+  elements?: RichTextElementModel[];
   blocks?: Array<UmbracoBlockContext>;
 } {
   return !!data && data.tag === "#root";
@@ -21,6 +21,12 @@ export function isCommentElement(
   return data.tag === "#comment";
 }
 
+export function hasElements(
+  data: RichTextElementModel,
+): data is { tag: string; elements: RichTextElementModel[] } {
+  return "elements" in data;
+}
+
 export function isUmbracoBlock(data: RichTextElementModel): data is {
   tag: string;
   attributes: {
@@ -34,9 +40,15 @@ export function isUmbracoBlock(data: RichTextElementModel): data is {
 export function isHtmlElement(data: RichTextElementModel): data is {
   tag: keyof HTMLElementTagNameMap;
   attributes: Record<string, unknown> & { route?: RouteAttributes };
-  elements: RichTextElementModel[];
+  elements?: RichTextElementModel[];
 } {
-  return "elements" in data;
+  return (
+    "attributes" in data &&
+    "tag" in data &&
+    data.tag !== "#text" &&
+    data.tag !== "#comment" &&
+    data.tag !== "#root"
+  );
 }
 
 interface BaseBlockItemModel {

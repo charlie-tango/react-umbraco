@@ -1,8 +1,8 @@
 import { decode } from "html-entities";
 import {
   type RichTextElementModel,
+  hasElements,
   isCommentElement,
-  isHtmlElement,
   isTextElement,
 } from "../types/RichTextTypes";
 
@@ -29,11 +29,14 @@ function iterateRichText(
     return acc;
   }
 
-  if (isCommentElement(data) || options.ignoreTags?.includes(data.tag)) {
+  if (
+    isCommentElement(data) ||
+    options.ignoreTags?.includes(data.tag as keyof HTMLElementTagNameMap)
+  ) {
     return acc;
   }
 
-  if (isHtmlElement(data)) {
+  if (hasElements(data)) {
     for (let i = 0; i < data.elements.length; i++) {
       iterateRichText(data.elements[i], acc, options);
       if (options.maxLength && arrayContentLength(acc) >= options.maxLength) {
@@ -49,7 +52,7 @@ function iterateRichText(
  */
 function findElement(
   data: RichTextElementModel,
-  tag: RichTextElementModel["tag"],
+  tag: string,
 ): RichTextElementModel | undefined {
   if (data.tag === tag) {
     // Ensure the element is or has text content before returning it.
@@ -60,7 +63,7 @@ function findElement(
     return undefined;
   }
 
-  if (isHtmlElement(data)) {
+  if (hasElements(data)) {
     for (let i = 0; i < data.elements.length; i++) {
       const result = findElement(data.elements[i], tag);
       if (result) {
@@ -74,7 +77,7 @@ function findElement(
 type Options = {
   firstParagraph?: boolean;
   maxLength?: number;
-  ignoreTags?: Array<RichTextElementModel["tag"]>;
+  ignoreTags?: Array<keyof HTMLElementTagNameMap>;
 };
 
 /**
