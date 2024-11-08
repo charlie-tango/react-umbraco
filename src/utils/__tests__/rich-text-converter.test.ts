@@ -43,3 +43,14 @@ test("should truncate text", () => {
     `"What to expect from here on out What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself..."`,
   );
 });
+
+test("should ignore tags", () => {
+  expect(
+    richTextToPlainText(fixture as RichTextElementModel, {
+      maxLength: 290,
+      ignoreTags: ["h2", "strong", "em", "ol", "ul", "code", "blockquote"],
+    }),
+  ).toMatchInlineSnapshot(
+    `"What follows from here is just a bunch of absolute nonsense I've written to dogfood the plugin itself. It includes every sensible typographic element I could think of, like, unordered lists, ordered lists, code blocks, block quotes,. It's important to cover all of these use cases for a..."`,
+  );
+});

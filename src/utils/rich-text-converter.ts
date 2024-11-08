@@ -23,7 +23,8 @@ function iterateRichText(
     }
     return acc;
   }
-  if (data.tag === "#comment") {
+
+  if (data.tag === "#comment" || options.ignoreTags?.includes(data.tag)) {
     return acc;
   }
 
@@ -68,6 +69,7 @@ function findElement(
 type Options = {
   firstParagraph?: boolean;
   maxLength?: number;
+  ignoreTags?: Array<RichTextElementModel["tag"]>;
 };
 
 /**

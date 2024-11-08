@@ -15,7 +15,7 @@ choice.
 npm install @charlietango/react-umbraco
 ```
 
-### `<UmbracoRichText>`
+## `<UmbracoRichText>`
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/charlie-tango/react-umbraco/tree/main?file=examples/UmbracoRichText/src/RichText.tsx)
 
@@ -84,7 +84,7 @@ function RichText({ data }) {
 }
 ```
 
-#### Blocks
+### Blocks
 
 You can augment the `renderBlock` method with the generated OpenAPI types from
 Umbraco Content Delivery API. That way you can correctly filter the blocks you
@@ -110,10 +110,28 @@ declare module "@charlietango/react-umbraco" {
 }
 ```
 
-### `richTextToPlainText`
+## `richTextToPlainText`
 
-A useful method to convert the rich text property to plain text. This can be
-used to generate meta descriptions or other text-based properties.
+A utility function to convert an Umbraco RichText element to plain text. This
+can be useful for generating meta descriptions or other text-based properties.
+
+### Parameters
+
+- `data` (`RichTextElementModel`): The rich text element to be converted.
+- `options` (`Options`, _optional_): An object to specify additional options.
+  - `firstParagraph` (`boolean`, _optional_): If `true`, only the first
+    paragraph with text content will be returned.
+  - `maxLength` (`number`, _optional_): The maximum length of the returned text.
+    If the text exceeds this length, it will be truncated to the nearest word
+    and an ellipsis will be added.
+  - `ignoreTags` (`Array<string>`, _optional_): An array of tags to be ignored
+    during the conversion.
+
+### Returns
+
+- `string`: The plain text representation of the rich text element.
+
+### Example
 
 ```ts
 import { richTextToPlainText } from "@charlietango/react-umbraco";
@@ -128,6 +146,11 @@ const firstParagraph = richTextToPlainText(richTextData, {
 // Just the first 100 characters, truncated at the nearest word with an ellipsis
 const first100Characters = richTextToPlainText(richTextData, {
   maxLength: 100,
+});
+
+// Ignore certain tags, skipping their content
+const ignoreTags = richTextToPlainText(richTextData, {
+  ignoreTags: ["h1", "h2", "ol", "figure"],
 });
 ```
 
