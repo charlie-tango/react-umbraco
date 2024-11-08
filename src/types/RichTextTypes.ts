@@ -1,5 +1,44 @@
 import type { Overwrite } from "../utils/helper-types";
 
+export function isRootElement(data: RichTextElementModel | undefined): data is {
+  tag: "#root";
+  attributes?: Record<string, unknown>;
+  elements: RichTextElementModel[];
+  blocks?: Array<UmbracoBlockContext>;
+} {
+  return !!data && data.tag === "#root";
+}
+
+export function isTextElement(
+  data: RichTextElementModel,
+): data is { tag: "#text"; text: string } {
+  return data.tag === "#text";
+}
+
+export function isCommentElement(
+  data: RichTextElementModel,
+): data is { tag: "#comment"; text: string } {
+  return data.tag === "#comment";
+}
+
+export function isUmbracoBlock(data: RichTextElementModel): data is {
+  tag: string;
+  attributes: {
+    "content-id": string;
+  };
+  elements: RichTextElementModel[];
+} {
+  return data.tag === "umb-rte-block" || data.tag === "umb-rte-block-inline";
+}
+
+export function isHtmlElement(data: RichTextElementModel): data is {
+  tag: keyof HTMLElementTagNameMap;
+  attributes: Record<string, unknown> & { route?: RouteAttributes };
+  elements: RichTextElementModel[];
+} {
+  return "elements" in data;
+}
+
 interface BaseBlockItemModel {
   content?: {
     id: string;
@@ -67,14 +106,7 @@ export type RichTextElementModel =
       text: string;
     }
   | {
-      tag: "umb-rte-block";
-      attributes: {
-        "content-id": string;
-      };
-      elements: RichTextElementModel[];
-    }
-  | {
-      tag: "umb-rte-block-inline";
+      tag: "umb-rte-block" | "umb-rte-block-inline";
       attributes: {
         "content-id": string;
       };
@@ -84,4 +116,10 @@ export type RichTextElementModel =
       tag: keyof HTMLElementTagNameMap;
       attributes: Record<string, unknown> & { route?: RouteAttributes };
       elements?: RichTextElementModel[];
+    }
+  | {
+      tag: string;
+      attributes?: Record<string, unknown> & { route?: RouteAttributes };
+      elements?: RichTextElementModel[];
+      blocks?: Array<UmbracoBlockContext>;
     };

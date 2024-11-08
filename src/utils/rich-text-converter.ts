@@ -1,5 +1,10 @@
 import { decode } from "html-entities";
-import type { RichTextElementModel } from "../types/RichTextTypes";
+import {
+  type RichTextElementModel,
+  isCommentElement,
+  isHtmlElement,
+  isTextElement,
+} from "../types/RichTextTypes";
 
 const arrayContentLength = (arr: string[]) => arr.join("").length;
 
@@ -12,7 +17,7 @@ function iterateRichText(
   options: Options,
 ) {
   // Iterate over the elements in the rich text, and find all `#text` elements
-  if (data.tag === "#text") {
+  if (isTextElement(data)) {
     // Decode the text and remove any extra whitespace/line breaks
     const decodedText = decode(data.text).trim().replace(/\s+/g, " ");
     // If the text is the first element, or the first character is a special character, don't add a space
@@ -24,11 +29,11 @@ function iterateRichText(
     return acc;
   }
 
-  if (data.tag === "#comment" || options.ignoreTags?.includes(data.tag)) {
+  if (isCommentElement(data) || options.ignoreTags?.includes(data.tag)) {
     return acc;
   }
 
-  if (data.elements) {
+  if (isHtmlElement(data)) {
     for (let i = 0; i < data.elements.length; i++) {
       iterateRichText(data.elements[i], acc, options);
       if (options.maxLength && arrayContentLength(acc) >= options.maxLength) {
@@ -55,7 +60,7 @@ function findElement(
     return undefined;
   }
 
-  if (data.elements) {
+  if (isHtmlElement(data)) {
     for (let i = 0; i < data.elements.length; i++) {
       const result = findElement(data.elements[i], tag);
       if (result) {

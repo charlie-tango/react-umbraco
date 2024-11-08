@@ -1,9 +1,13 @@
 import { decode } from "html-entities";
 import React from "react";
-import type {
-  RichTextElementModel,
-  RouteAttributes,
-  UmbracoBlockContext,
+import {
+  type RichTextElementModel,
+  type RouteAttributes,
+  type UmbracoBlockContext,
+  isHtmlElement,
+  isRootElement,
+  isTextElement,
+  isUmbracoBlock,
 } from "./types/RichTextTypes";
 import { parseStyle } from "./utils/parse-style";
 
@@ -86,34 +90,16 @@ function RichTextElement({
 } & Pick<RichTextProps, "renderBlock" | "renderNode" | "htmlAttributes">) {
   if (!element || element.tag === "#comment" || element.tag === "#root")
     return null;
-  if (element.tag === "#text") {
+
+  if (isTextElement(element)) {
     // Decode HTML entities in text nodes
     return decode(element.text);
   }
 
-  let children = element.elements?.map((node, index) => (
-    <RichTextElement
-      key={index}
-      element={node}
-      blocks={blocks}
-      renderBlock={renderBlock}
-      renderNode={renderNode}
-      meta={{
-        ancestor: element.tag,
-        previous: element.elements?.[index - 1]?.tag,
-        next: element.elements?.[index + 1]?.tag,
-      }}
-    />
-  ));
-  if (!children?.length) children = undefined;
-
   // If the tag is a block, skip the normal rendering and render the block
-  if (
-    element.tag === "umb-rte-block" ||
-    element.tag === "umb-rte-block-inline"
-  ) {
+  if (isUmbracoBlock(element)) {
     const block = blocks?.find(
-      (block) => block.content?.id === element.attributes["content-id"],
+      (block) => block.content?.id === element.attributes?.["content-id"],
     );
     if (renderBlock && block) {
       return renderBlock(block);
@@ -127,52 +113,76 @@ function RichTextElement({
     return null;
   }
 
-  const { route, style, class: className, ...attributes } = element.attributes;
-  const defaultAttributes = htmlAttributes[element.tag];
-  if (element.tag === "a" && route?.path) {
-    attributes.href = route?.path;
-  }
+  if (isHtmlElement(element)) {
+    const children: React.ReactNode =
+      element.elements.map((node, index) => (
+        <RichTextElement
+          key={index}
+          element={node}
+          blocks={blocks}
+          renderBlock={renderBlock}
+          renderNode={renderNode}
+          meta={{
+            ancestor: element.tag,
+            previous: element.elements?.[index - 1]?.tag,
+            next: element.elements?.[index + 1]?.tag,
+          }}
+        />
+      )) || null;
 
-  if (className) {
-    if (defaultAttributes?.className) {
-      // Merge the default class with the class attribute
-      attributes.className = `${defaultAttributes.className} ${className}`;
-    } else {
-      attributes.className = className;
-    }
-  }
-
-  if (typeof style === "string") {
-    attributes.style = parseStyle(style);
-  }
-
-  if (renderNode) {
-    const output = renderNode({
-      // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using any. The type will be corrected in the implementation.
-      tag: element.tag as any,
-      attributes: {
-        ...defaultAttributes,
-        ...attributes,
-      } as Record<string, unknown>,
-      children,
+    const {
       route,
-      meta: meta || {},
-    });
-
-    if (output !== undefined) {
-      // If we got a valid output from the renderElement function, we return it
-      // `null` we will render nothing, but `undefined` fallback to the default element
-      return output;
+      style,
+      class: className,
+      ...attributes
+    } = element.attributes;
+    const defaultAttributes = htmlAttributes[element.tag];
+    if (element.tag === "a" && route?.path) {
+      attributes.href = route?.path;
     }
-  }
 
-  return React.createElement(
-    element.tag,
-    htmlAttributes[element.tag]
-      ? { ...defaultAttributes, ...attributes }
-      : attributes,
-    children,
-  );
+    if (className) {
+      if (defaultAttributes?.className) {
+        // Merge the default class with the class attribute
+        attributes.className = `${defaultAttributes.className} ${className}`;
+      } else {
+        attributes.className = className;
+      }
+    }
+
+    if (typeof style === "string") {
+      attributes.style = parseStyle(style);
+    }
+
+    if (renderNode) {
+      const output = renderNode({
+        // biome-ignore lint/suspicious/noExplicitAny: Avoid complicated TypeScript logic by using any. The type will be corrected in the implementation.
+        tag: element.tag as any,
+        attributes: {
+          ...defaultAttributes,
+          ...attributes,
+        } as Record<string, unknown>,
+        children,
+        route,
+        meta: meta || {},
+      });
+
+      if (output !== undefined) {
+        // If we got a valid output from the renderElement function, we return it
+        // `null` we will render nothing, but `undefined` fallback to the default element
+        return output;
+      }
+    }
+
+    return React.createElement(
+      element.tag,
+      htmlAttributes[element.tag]
+        ? { ...defaultAttributes, ...attributes }
+        : attributes,
+      children,
+    );
+  }
+  return undefined;
 }
 
 /**
@@ -180,7 +190,7 @@ function RichTextElement({
  */
 export function UmbracoRichText(props: RichTextProps) {
   const rootElement = props.data;
-  if (rootElement?.tag === "#root" && rootElement.elements) {
+  if (isRootElement(rootElement)) {
     return (
       <>
         {rootElement.elements.map((element, index) => (
