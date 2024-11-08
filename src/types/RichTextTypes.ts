@@ -7,7 +7,7 @@ export function isRootElement(data: RichTextElementModel | undefined): data is {
   tag: "#root";
   attributes?: Record<string, unknown>;
   elements?: RichTextElementModel[];
-  blocks?: Array<UmbracoBlockContext>;
+  blocks?: Array<RenderBlockContext>;
 } {
   return !!data && data.tag === "#root";
 }
@@ -108,7 +108,7 @@ export interface UmbracoBlockItemModel {
 /**
  * The merged block context with the Umbraco block item model, and the user-defined block item model.
  */
-export type UmbracoBlockContext = Overwrite<
+export type RenderBlockContext = Overwrite<
   BaseBlockItemModel,
   Omit<UmbracoBlockItemModel, "_overrideImplementation">
 >;
@@ -129,7 +129,7 @@ export type RichTextElementModel =
       tag: "#root";
       attributes?: Record<string, unknown>;
       elements?: RichTextElementModel[];
-      blocks?: Array<UmbracoBlockContext>;
+      blocks?: Array<RenderBlockContext>;
     }
   | {
       tag: "#text";
@@ -158,5 +158,5 @@ export type RichTextElementModel =
       text?: string;
       attributes?: Record<string, unknown>;
       elements?: RichTextElementModel[];
-      blocks?: Array<UmbracoBlockContext>;
+      blocks?: Array<RenderBlockContext>;
     };

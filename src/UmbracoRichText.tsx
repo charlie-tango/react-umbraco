@@ -1,9 +1,9 @@
 import { decode } from "html-entities";
 import React from "react";
 import {
+  type RenderBlockContext,
   type RichTextElementModel,
   type RouteAttributes,
-  type UmbracoBlockContext,
   isHtmlElement,
   isRootElement,
   isTextElement,
@@ -44,7 +44,7 @@ export type RenderNodeContext = {
 
 interface RichTextProps {
   data: RichTextElementModel | undefined;
-  renderBlock?: (block: UmbracoBlockContext) => React.ReactNode;
+  renderBlock?: (block: RenderBlockContext) => React.ReactNode;
   /**
    * Render an HTML node with custom logic.
    * @param node
@@ -79,7 +79,7 @@ function RichTextElement({
   meta,
 }: {
   element: RichTextElementModel;
-  blocks: Array<UmbracoBlockContext> | undefined;
+  blocks: Array<RenderBlockContext> | undefined;
   meta:
     | {
         ancestor?: string;

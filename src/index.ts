@@ -3,5 +3,5 @@ export { richTextToPlainText } from "./utils/rich-text-converter";
 export type { RenderNodeContext } from "./UmbracoRichText";
 export type {
   UmbracoBlockItemModel,
-  UmbracoBlockContext,
+  RenderBlockContext,
 } from "./types/RichTextTypes";
