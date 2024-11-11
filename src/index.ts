@@ -5,3 +5,5 @@ export type {
   UmbracoBlockItemModel,
   RenderBlockContext,
 } from "./rich-text/RichTextTypes";
+
+export * from "./image/image-utils";

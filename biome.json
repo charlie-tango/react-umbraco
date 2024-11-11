@@ -23,6 +23,7 @@
     "ignore": ["src/utils/helper-types.ts"],
     "rules": {
       "recommended": true,
+      "performance": { "noDelete": "off" },
       "complexity": {
         "noBannedTypes": "off"
       },
