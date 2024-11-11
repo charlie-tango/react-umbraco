@@ -4,7 +4,7 @@ import {
   hasElements,
   isCommentElement,
   isTextElement,
-} from "../types/RichTextTypes";
+} from "./RichTextTypes";
 
 const arrayContentLength = (arr: string[]) => arr.join("").length;
 

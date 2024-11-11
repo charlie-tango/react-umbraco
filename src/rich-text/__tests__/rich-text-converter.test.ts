@@ -1,6 +1,6 @@
-import fixture from "../../__tests__/__fixtures__/UmbracoRichText.fixture.json";
-import type { RichTextElementModel } from "../../types/RichTextTypes";
+import type { RichTextElementModel } from "../RichTextTypes";
 import { richTextToPlainText } from "../rich-text-converter";
+import fixture from "./__fixtures__/UmbracoRichText.fixture.json";
 
 test("should convert rich text to plain text", () => {
   expect(
