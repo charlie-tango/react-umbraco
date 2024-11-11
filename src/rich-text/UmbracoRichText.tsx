@@ -8,8 +8,8 @@ import {
   isRootElement,
   isTextElement,
   isUmbracoBlock,
-} from "./types/RichTextTypes";
-import { parseStyle } from "./utils/parse-style";
+} from "./RichTextTypes";
+import { parseStyle } from "./parse-style";
 
 interface NodeMeta {
   /** The tag of the parent element */

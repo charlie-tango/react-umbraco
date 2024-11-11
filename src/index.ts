@@ -1,7 +1,7 @@
-export { UmbracoRichText } from "./UmbracoRichText";
-export { richTextToPlainText } from "./utils/rich-text-converter";
-export type { RenderNodeContext } from "./UmbracoRichText";
+export { UmbracoRichText } from "./rich-text/UmbracoRichText";
+export { richTextToPlainText } from "./rich-text/rich-text-converter";
+export type { RenderNodeContext } from "./rich-text/UmbracoRichText";
 export type {
   UmbracoBlockItemModel,
   RenderBlockContext,
-} from "./types/RichTextTypes";
+} from "./rich-text/RichTextTypes";

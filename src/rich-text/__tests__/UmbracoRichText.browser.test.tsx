@@ -1,6 +1,6 @@
 import { render } from "vitest-browser-react";
+import type { RichTextElementModel } from "../RichTextTypes";
 import { UmbracoRichText } from "../UmbracoRichText";
-import type { RichTextElementModel } from "../types/RichTextTypes";
 import fixture from "./__fixtures__/UmbracoRichText.fixture.json";
 
 /**
