@@ -8,7 +8,8 @@
       "coverage/**",
       "storybook-static/**",
       "pnpm-lock.yaml",
-      "examples/**"
+      "examples/**",
+      "package.json"
     ]
   },
   "organizeImports": {
