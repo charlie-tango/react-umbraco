@@ -78,7 +78,7 @@ function RichText({ data }) {
       element={data.richText}
       renderNode={renderNode}
       renderBlock={renderBlock}
-      htmlAttributes={{ p: "mb-4" }}
+      htmlAttributes={{ p: { className: "mb-4" }}
     />
   );
 }
