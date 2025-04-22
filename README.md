@@ -75,7 +75,7 @@ function renderBlock({ content }: RenderBlockContext) {
 function RichText({ data }) {
   return (
     <UmbracoRichText
-      element={data.richText}
+      data={data.richText}
       renderNode={renderNode}
       renderBlock={renderBlock}
       htmlAttributes={{ p: { className: "mb-4" }}
