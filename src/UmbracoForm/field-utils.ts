@@ -67,7 +67,7 @@ export function getAllFields(form: FormDto): FormFieldDto[] {
  *
  * @param {FormDto} form - The form data transfer object.
  * @param {string} id - The id of the field to retrieve.
- * @returns {FieldDto | undefined} The field with the specified alias, or undefined if not found.
+ * @returns {FormFieldDto | undefined} The field with the specified alias, or undefined if not found.
  */
 export function getFieldById(
   form: FormDto,
@@ -87,7 +87,7 @@ export function getFieldById(
  *
  * @param {FormDto} form - The form data transfer object.
  * @param {string} alias - The alias of the field to retrieve.
- * @returns {FieldDto | undefined} The field with the specified alias, or undefined if not found.
+ * @returns {FormFieldDto | undefined} The field with the specified alias, or undefined if not found.
  */
 export function getFieldByAlias(
   form: FormDto,
@@ -271,7 +271,7 @@ export function getAttributesForFieldType(
       return {
         defaultValue,
         ...commonAttributes,
-        multiple: !!settings?.allowMultipleSelections ?? false,
+        multiple: !!settings?.allowMultipleSelections,
       } satisfies React.SelectHTMLAttributes<HTMLSelectElement>;
     })
     .with(DefaultFieldType.Date, () => ({
