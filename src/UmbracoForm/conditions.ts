@@ -142,13 +142,15 @@ export function is(value: unknown, rule: unknown) {
 }
 
 function contains(value: unknown, rule: unknown) {
-  return rule ? value?.toString().includes(rule?.toString()) ?? false : false;
+  return rule ? (value?.toString().includes(rule?.toString()) ?? false) : false;
 }
 
 function startsWith(value: unknown, rule: unknown) {
-  return rule ? value?.toString().startsWith(rule?.toString()) ?? false : false;
+  return rule
+    ? (value?.toString().startsWith(rule?.toString()) ?? false)
+    : false;
 }
 
 function endsWith(value: unknown, rule: unknown) {
-  return rule ? value?.toString().endsWith(rule?.toString()) ?? false : false;
+  return rule ? (value?.toString().endsWith(rule?.toString()) ?? false) : false;
 }
