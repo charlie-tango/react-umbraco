@@ -1,3 +1,9 @@
 packages:
-  - "."
-  - "examples/*"
+  - .
+  - examples/*
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - msw
+  - simple-git-hooks
