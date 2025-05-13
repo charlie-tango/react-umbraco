@@ -67,6 +67,20 @@ interface RichTextProps {
   }>;
 }
 
+function parseUrl(href: string) {
+  try {
+    // Try to parse the URL. This will throw if the URL is invalid (e.g., doesn't contain https://)
+    return new URL(href);
+  } catch {
+    // Try with a fake base for relative URLs
+    try {
+      return new URL(href, "http://localhost/");
+    } catch {
+      return undefined;
+    }
+  }
+}
+
 /**
  * Render the individual elements of the rich text
  */
@@ -139,8 +153,33 @@ function RichTextElement({
       ...attributes
     } = element.attributes;
     const defaultAttributes = htmlAttributes[element.tag];
-    if (element.tag === "a" && route?.path) {
-      attributes.href = route?.path;
+    if (element.tag === "a") {
+      const href = route?.path ?? decode((attributes?.href as string) ?? "");
+      const anchorOrQuery = attributes.anchor
+        ? decode(attributes.anchor as string)
+        : undefined;
+      attributes.anchor = undefined;
+
+      const url = parseUrl(href);
+      // If the user has added an anchor or query parameter to the href, we need to handle it
+      if (url) {
+        if (anchorOrQuery?.startsWith("?")) {
+          // Add the custom query parameter to the href.
+          const queryParams = new URLSearchParams(anchorOrQuery);
+          // Add all query parameters to the URL. This will overwrite any existing query parameters with the same key.
+          queryParams.forEach((val, key) => {
+            url.searchParams.set(key, val);
+          });
+        } else if (anchorOrQuery) {
+          // Append the anchor (hash) to the href
+          url.hash = anchorOrQuery;
+        }
+
+        attributes.href = url.toString().replace(/^http:\/\/localhost\//, "/");
+      } else {
+        // Fallback to merging the href with the anchor or query parameter
+        attributes.href = href + (anchorOrQuery || "");
+      }
     }
 
     if (className) {
