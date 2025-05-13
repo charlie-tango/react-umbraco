@@ -67,6 +67,20 @@ interface RichTextProps {
   }>;
 }
 
+function parseUrl(href: string) {
+  try {
+    // Try to parse the URL. This will throw if the URL is invalid (e.g., doesn't contain https://)
+    return new URL(href);
+  } catch {
+    // Try with a fake base for relative URLs
+    try {
+      return new URL(href, "http://localhost/");
+    } catch {
+      return undefined;
+    }
+  }
+}
+
 /**
  * Render the individual elements of the rich text
  */
@@ -146,19 +160,7 @@ function RichTextElement({
         : undefined;
       attributes.anchor = undefined;
 
-      let url: URL | undefined;
-
-      try {
-        // Try to parse the URL. This will throw if the URL is invalid (e.g., doesn't contain https://)
-        url = new URL(href);
-      } catch {
-        // Try with a fake base for relative URLs
-        try {
-          url = new URL(href, "http://localhost/");
-        } catch {
-          url = undefined;
-        }
-      }
+      const url = parseUrl(href);
       // If the user has added an anchor or query parameter to the href, we need to handle it
       if (url) {
         if (anchorOrQuery?.startsWith("?")) {
