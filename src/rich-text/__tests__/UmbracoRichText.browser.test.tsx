@@ -396,3 +396,148 @@ it("should handle default attributes for with renderNode", () => {
   expect(paragraph).toHaveClass("mb-4");
   expect(paragraph).toHaveClass("mb-4 font-medium");
 });
+
+it("should decode HTML entities in anchor href", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "a",
+            attributes: {
+              href: "https://www.dropbox.com/scl/fo/nxzsi3mhxcw1h328ec8sj/ADYSbOqtvqfrXGm4ahvux0Y?rlkey=mq5r35jkliuaax978dax&amp;st=kf3qsjg5&amp;dl=0",
+              anchor: "?rlkey=mq5r35jkliuaax978dax&amp;st=kf3qsjg5&amp;dl=0",
+            },
+            elements: [
+              {
+                text: "Decoded link",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+    />,
+  );
+  const link = screen.getByRole("link").element() as HTMLAnchorElement;
+  expect(link.href).toBe(
+    "https://www.dropbox.com/scl/fo/nxzsi3mhxcw1h328ec8sj/ADYSbOqtvqfrXGm4ahvux0Y?rlkey=mq5r35jkliuaax978dax&st=kf3qsjg5&dl=0",
+  );
+});
+
+it("should handle anchor with hash", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "a",
+            attributes: {
+              href: "https://www.charlietango.dk/",
+              anchor: "#main",
+            },
+            elements: [
+              {
+                text: "Link",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+    />,
+  );
+
+  const link = screen.getByRole("link").element() as HTMLAnchorElement;
+  expect(link.href).toBe("https://www.charlietango.dk/#main");
+});
+
+it("should handle anchor with hash and query params", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "a",
+            attributes: {
+              href: "https://www.charlietango.dk/?query=param",
+              anchor: "#main",
+            },
+            elements: [
+              {
+                text: "Link",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+    />,
+  );
+
+  const link = screen.getByRole("link").element() as HTMLAnchorElement;
+  expect(link.href).toBe("https://www.charlietango.dk/?query=param#main");
+});
+
+it("should anchor to route paths", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "a",
+            attributes: {
+              anchor: "#main",
+              route: { path: "/about" },
+            },
+            elements: [
+              {
+                text: "Link",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+    />,
+  );
+
+  const link = screen.getByRole("link").element();
+  expect(link).toHaveAttribute("href", "/about#main");
+  expect(link).not.toHaveAttribute("anchor");
+});
+
+it("don't remove localhost, from an URL that for some weird reason also contains localhost as part of it", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "a",
+            attributes: {
+              anchor: "?url=http://localhost/",
+              href: "http://localhost:3000/about",
+            },
+            elements: [
+              {
+                text: "Link",
+                tag: "#text",
+              },
+            ],
+          },
+        ],
+      }}
+    />,
+  );
+
+  const link = screen.getByRole("link").element();
+  expect(link).toHaveAttribute(
+    "href",
+    "http://localhost:3000/about?url=http%3A%2F%2Flocalhost%2F",
+  );
+});
