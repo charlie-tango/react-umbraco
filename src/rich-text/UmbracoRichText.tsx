@@ -1,5 +1,5 @@
 import { decode } from "html-entities";
-import React from "react";
+import * as React from "react";
 import {
   type RenderBlockContext,
   type RichTextElementModel,
@@ -106,6 +106,9 @@ function RichTextElement({
     return null;
 
   if (isTextElement(element)) {
+    // Umbraco adds a new line character to the text element between HTML tags. Remove this, so we keep the HTML valid.
+    // This is only for cases where the only thing in the text element is a new line - This would just be added to keep the HTML pretty.
+    if (element.text === "\n") return null;
     // Decode HTML entities in text nodes
     return decode(element.text);
   }
