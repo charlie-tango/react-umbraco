@@ -1,5 +1,5 @@
 /** generated output from Umbraco content delivery API */
-export default {
+export const data =  {
   tag: '#root',
   attributes: {},
   blocks: [
@@ -1479,16 +1479,6 @@ export default {
       elements: [
         {
           text: "It's also interesting to see how Umbraco outputs images.",
-          tag: '#text',
-        },
-      ],
-    },
-    {
-      tag: 'p',
-      attributes: {},
-      elements: [
-        {
-          text: '&nbsp;',
           tag: '#text',
         },
       ],

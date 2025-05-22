@@ -1,8 +1,8 @@
 import {
-  type UmbracoBlockContext,
+  type RenderBlockContext,
   type RenderNodeContext,
   UmbracoRichText,
-} from '@charlietango/react-umbraco';
+} from '../../../src';
 
 // replace with ApiBlockItemModel from your own Umbraco API openapi docs for type safety
 interface ApiBlockItemModel {
@@ -42,7 +42,7 @@ function exhaustiveGuard(value: never): never {
 // provide handling of rendering blocks from Umbraco
 function renderBlock({
   content,
-}: UmbracoBlockContext): React.ReactNode | undefined {
+}: RenderBlockContext): React.ReactNode | undefined {
   if (!content) return undefined;
 
   // discriminating on content.id ensures correct typing for the content properties based on the defined ApiBlockItemModel
@@ -71,7 +71,7 @@ function renderBlock({
   }
 }
 
-function RichText(props: { data: any }) {
+export function RichText(props: { data: any }) {
   return (
     <div className="prose">
       <UmbracoRichText
