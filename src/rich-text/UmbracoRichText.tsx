@@ -7,7 +7,6 @@ import {
   isRootElement,
   isTextElement,
   isUmbracoBlock,
-  isUmbracoInlineBlock,
   type RenderBlockContext,
   type RichTextElementModel,
   type RouteAttributes,
@@ -112,7 +111,7 @@ function RichTextElement({
   }
 
   // If the tag is a block, skip the normal rendering and render the block
-  if (isUmbracoBlock(element) || isUmbracoInlineBlock(element)) {
+  if (isUmbracoBlock(element)) {
     const block = blocks?.find(
       (block) => block.content?.id === element.attributes?.["content-id"],
     );
@@ -254,7 +253,12 @@ export function UmbracoRichText(props: RichTextProps) {
             renderBlock={props.renderBlock}
             renderNode={props.renderNode}
             htmlAttributes={props.htmlAttributes}
-            meta={undefined}
+            meta={{
+              ancestor: rootElement,
+              children: hasElements(element) ? element.elements : undefined,
+              previous: rootElement.elements?.[index - 1],
+              next: rootElement.elements?.[index + 1],
+            }}
           />
         ))}
       </>

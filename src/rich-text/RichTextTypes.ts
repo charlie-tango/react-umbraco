@@ -49,20 +49,7 @@ export function isUmbracoBlock(data: RichTextElementModel): data is {
   };
   elements: RichTextElementModel[];
 } {
-  return data.tag === "umb-rte-block";
-}
-
-/**
- * Type guard to check if the data is an Umbraco inline block element.
- */
-export function isUmbracoInlineBlock(data: RichTextElementModel): data is {
-  tag: string;
-  attributes: {
-    "content-id": string;
-  };
-  elements: RichTextElementModel[];
-} {
-  return data.tag === "umb-rte-block-inline";
+  return data.tag === "umb-rte-block" || data.tag === "umb-rte-block-inline";
 }
 
 /**
@@ -79,8 +66,7 @@ export function isHtmlElement(data: RichTextElementModel): data is {
     !isTextElement(data) &&
     !isCommentElement(data) &&
     !isRootElement(data) &&
-    !isUmbracoBlock(data) &&
-    !isUmbracoInlineBlock(data)
+    !isUmbracoBlock(data)
   );
 }
 
