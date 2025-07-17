@@ -1,9 +1,9 @@
 import { decode } from "html-entities";
 import {
-  type RichTextElementModel,
   hasElements,
   isCommentElement,
   isTextElement,
+  type RichTextElementModel,
 } from "./RichTextTypes";
 
 const arrayContentLength = (arr: string[]) => arr.join("").length;

@@ -4,7 +4,7 @@ export default defineConfig({
   optimizeDeps: { include: ["react/jsx-dev-runtime"] },
   test: {
     globals: true,
-    workspace: [
+    projects: [
       {
         extends: true,
         test: {

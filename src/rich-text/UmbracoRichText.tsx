@@ -1,17 +1,17 @@
 import { decode } from "html-entities";
 import * as React from "react";
+import { parseStyle } from "./parse-style";
 import {
-  type RenderBlockContext,
-  type RichTextElementModel,
-  type RouteAttributes,
   hasElements,
   isHtmlElement,
   isRootElement,
   isTextElement,
   isUmbracoBlock,
   isUmbracoInlineBlock,
+  type RenderBlockContext,
+  type RichTextElementModel,
+  type RouteAttributes,
 } from "./RichTextTypes";
-import { parseStyle } from "./parse-style";
 
 interface NodeMeta {
   /** The node of the parent element */
@@ -127,7 +127,7 @@ function RichTextElement({
 
     return null;
   }
-  let children: Array<React.ReactNode> | undefined = undefined;
+  let children: Array<React.ReactNode> | undefined;
   if (isHtmlElement(element)) {
     children = element.elements?.map((node, index) => (
       <RichTextElement
