@@ -285,7 +285,7 @@ it("should render default node if renderNode prop returns undefined", () => {
 it("should render fixture content correctly", () => {
   const screen = render(
     <UmbracoRichText
-      // biome-ignore lint/suspicious/noExplicitAny:
+      // biome-ignore lint/suspicious/noExplicitAny: The fixture is typed as any to avoid type issues.
       data={fixture as any}
       renderBlock={() => <div data-testid="block" />}
     />,
@@ -595,7 +595,7 @@ it("don't remove localhost, from an URL that for some weird reason also contains
 
 it("should forward the expected meta data nodes to renderNode", () => {
   // Create a mock function to capture renderNode calls
-  const renderNodeMock = vi.fn((node) => {
+  const renderNodeMock = vi.fn((_node) => {
     // Return undefined to use default rendering
     return undefined;
   });
