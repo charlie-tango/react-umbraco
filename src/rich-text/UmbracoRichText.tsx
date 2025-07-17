@@ -4,20 +4,24 @@ import {
   type RenderBlockContext,
   type RichTextElementModel,
   type RouteAttributes,
+  hasElements,
   isHtmlElement,
   isRootElement,
   isTextElement,
   isUmbracoBlock,
+  isUmbracoInlineBlock,
 } from "./RichTextTypes";
 import { parseStyle } from "./parse-style";
 
 interface NodeMeta {
-  /** The tag of the parent element */
-  ancestor?: string;
-  /** The tag of the previous sibling element */
-  previous?: string;
-  /** The tag of the next sibling element */
-  next?: string;
+  /** The node of the parent element */
+  ancestor?: RichTextElementModel;
+  /** The nodes of the descendant child elements */
+  children?: RichTextElementModel[];
+  /** The node of the previous sibling element */
+  previous?: RichTextElementModel;
+  /** The node of the next sibling element */
+  next?: RichTextElementModel;
 }
 
 /**
@@ -48,7 +52,7 @@ interface RichTextProps {
   /**
    * Render an HTML node with custom logic.
    * @param node
-   * @returns A React node, `null` to render nothing, or `undefined` to fallback to the default element
+   * @returns A React node, `null` to render nothing, or `undefined` to fall back to the default element
    */
   renderNode?: (node: RenderNodeContext) => React.ReactNode | undefined;
   /** Default attributes for HTML elements, used to add default classes to all `<p>` tags.
@@ -94,13 +98,7 @@ function RichTextElement({
 }: {
   element: RichTextElementModel;
   blocks: Array<RenderBlockContext> | undefined;
-  meta:
-    | {
-        ancestor?: string;
-        next?: string;
-        previous?: string;
-      }
-    | undefined;
+  meta: NodeMeta | undefined;
 } & Pick<RichTextProps, "renderBlock" | "renderNode" | "htmlAttributes">) {
   if (!element || element.tag === "#comment" || element.tag === "#root")
     return null;
@@ -114,7 +112,7 @@ function RichTextElement({
   }
 
   // If the tag is a block, skip the normal rendering and render the block
-  if (isUmbracoBlock(element)) {
+  if (isUmbracoBlock(element) || isUmbracoInlineBlock(element)) {
     const block = blocks?.find(
       (block) => block.content?.id === element.attributes?.["content-id"],
     );
@@ -139,9 +137,10 @@ function RichTextElement({
         renderBlock={renderBlock}
         renderNode={renderNode}
         meta={{
-          ancestor: element.tag,
-          previous: element.elements?.[index - 1]?.tag,
-          next: element.elements?.[index + 1]?.tag,
+          ancestor: element,
+          children: hasElements(node) ? node.elements : undefined,
+          previous: element.elements?.[index - 1],
+          next: element.elements?.[index + 1],
         }}
       />
     ));
@@ -216,6 +215,16 @@ function RichTextElement({
         // `null` we will render nothing, but `undefined` fallback to the default element
         return output;
       }
+    }
+
+    if (
+      element.tag === "p" &&
+      element.elements?.length === 1 &&
+      isUmbracoBlock(element.elements[0])
+    ) {
+      // If the paragraph only contains a block, we return the block directly.
+      // This avoids wrapping the block in a paragraph tag, which would likely result in invalid HTML.
+      return children;
     }
 
     return React.createElement(
