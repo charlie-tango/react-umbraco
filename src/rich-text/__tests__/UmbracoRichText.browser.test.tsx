@@ -293,6 +293,57 @@ it("should render fixture content correctly", () => {
   expect(screen.container.innerHTML).toMatchSnapshot();
 });
 
+it("should not render umbraco blocks inside `<p>` tags", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        blocks: [{ content: { id: "1", properties: {} } }],
+        elements: [
+          {
+            tag: "p",
+            attributes: {},
+            elements: [
+              {
+                tag: "umb-rte-block",
+                attributes: { "content-id": "1" },
+                elements: [],
+              },
+            ],
+          },
+          {
+            tag: "p",
+            attributes: {},
+            elements: [
+              {
+                tag: "umb-rte-block-inline",
+                attributes: { "content-id": "1" },
+                elements: [],
+              },
+            ],
+          },
+          {
+            tag: "p",
+            attributes: {},
+            elements: [
+              { tag: "#text", text: "This is a paragraph with text." },
+              {
+                tag: "umb-rte-block",
+                attributes: { "content-id": "1" },
+                elements: [],
+              },
+            ],
+          },
+        ],
+      }}
+      renderBlock={(block) => (
+        <div data-testid="umb-rte-block">{block?.content?.id}</div>
+      )}
+    />,
+  );
+  expect(screen.container.innerHTML).toMatchSnapshot();
+});
+
 it("should handle default attributes for elements", () => {
   const screen = render(
     <UmbracoRichText
@@ -540,4 +591,77 @@ it("don't remove localhost, from an URL that for some weird reason also contains
     "href",
     "http://localhost:3000/about?url=http%3A%2F%2Flocalhost%2F",
   );
+});
+
+it("should forward the expected meta data nodes to renderNode", () => {
+  // Create a mock function to capture renderNode calls
+  const renderNodeMock = vi.fn((node) => {
+    // Return undefined to use default rendering
+    return undefined;
+  });
+
+  render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "div",
+            attributes: { id: "parent" },
+            elements: [
+              {
+                tag: "p",
+                attributes: { id: "first-child" },
+                elements: [{ tag: "#text", text: "First child" }],
+              },
+              {
+                tag: "p",
+                attributes: { id: "middle-child" },
+                elements: [{ tag: "#text", text: "Middle child" }],
+              },
+              {
+                tag: "p",
+                attributes: { id: "last-child" },
+                elements: [{ tag: "#text", text: "Last child" }],
+              },
+            ],
+          },
+        ],
+      }}
+      renderNode={renderNodeMock}
+    />,
+  );
+
+  // Find the call for the middle paragraph
+  const middleChildCall = renderNodeMock.mock.calls.find(
+    (call) => call[0].attributes.id === "middle-child",
+  )?.[0];
+
+  expect(middleChildCall).toBeDefined();
+
+  // Check that the meta property contains the expected values
+  expect(middleChildCall.meta).toBeDefined();
+
+  // Check parent (ancestor)
+  expect(middleChildCall.meta.ancestor).toBeDefined();
+  expect(middleChildCall.meta.ancestor?.tag).toBe("div");
+  expect(middleChildCall.meta.ancestor?.attributes.id).toBe("parent");
+
+  // Check previous sibling
+  expect(middleChildCall.meta.previous).toBeDefined();
+  expect(middleChildCall.meta.previous?.tag).toBe("p");
+  expect(middleChildCall.meta.previous?.attributes.id).toBe("first-child");
+
+  // Check next sibling
+  expect(middleChildCall.meta.next).toBeDefined();
+  expect(middleChildCall.meta.next?.tag).toBe("p");
+  expect(middleChildCall.meta.next?.attributes.id).toBe("last-child");
+
+  // Check that children is the text node
+  expect(middleChildCall.meta.children).toMatchObject([
+    {
+      tag: "#text",
+      text: "Middle child",
+    },
+  ]);
 });
