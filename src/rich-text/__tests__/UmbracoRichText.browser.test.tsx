@@ -665,3 +665,38 @@ it("should forward the expected meta data nodes to renderNode", () => {
     },
   ]);
 });
+
+it("should convert colspan and rowspan to colSpan and rowSpan in table rendering", () => {
+  const screen = render(
+    <UmbracoRichText
+      data={{
+        tag: "#root",
+        elements: [
+          {
+            tag: "table",
+            elements: [
+              {
+                tag: "tr",
+                elements: [
+                  {
+                    tag: "td",
+                    attributes: { colspan: "2", "data-testid": "cell1" },
+                    elements: [{ tag: "#text", text: "Cell 1" }],
+                  },
+                  {
+                    tag: "td",
+                    attributes: { rowspan: "2", "data-testid": "cell2" },
+                    elements: [{ tag: "#text", text: "Cell 2" }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      }}
+    />,
+  );
+
+  expect(screen.getByTestId("cell1").element()).toHaveAttribute("colSpan", "2");
+  expect(screen.getByTestId("cell2").element()).toHaveAttribute("rowSpan", "2");
+});
