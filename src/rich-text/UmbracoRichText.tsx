@@ -1,5 +1,6 @@
 import { decode } from "html-entities";
 import * as React from "react";
+import { mapHtmlAttributesToReact } from "./attributes-map";
 import { parseStyle } from "./parse-style";
 import {
   hasElements,
@@ -147,13 +148,11 @@ function RichTextElement({
       children = undefined;
     }
 
-    const {
-      route,
-      style,
-      class: className,
-      ...attributes
-    } = element.attributes;
+    const { route, style, ...attributes } = mapHtmlAttributesToReact(
+      element.attributes,
+    );
     const defaultAttributes = htmlAttributes[element.tag];
+
     if (element.tag === "a") {
       const href = route?.path ?? decode((attributes?.href as string) ?? "");
       const anchorOrQuery = attributes.anchor
@@ -183,12 +182,10 @@ function RichTextElement({
       }
     }
 
-    if (className) {
+    if (attributes.className) {
       if (defaultAttributes?.className) {
         // Merge the default class with the class attribute
-        attributes.className = `${defaultAttributes.className} ${className}`;
-      } else {
-        attributes.className = className;
+        attributes.className = `${defaultAttributes.className} ${attributes.className}`;
       }
     }
 
