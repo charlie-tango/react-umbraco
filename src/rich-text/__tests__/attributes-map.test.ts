@@ -114,8 +114,8 @@ it("should handle attributes with mixed casing", () => {
   const reactAttributes = mapHtmlAttributesToReact(mixedCaseAttributes);
 
   expect(reactAttributes).toEqual({
-    className: "test-class", // Should remain unchanged since it's not lowercase
-    colSpan: "2", // Should remain unchanged since it's not lowercase
-    tabIndex: "0", // Should be converted since it matches the mapping
+    className: "test-class", // Correctly mapped even with non-standard casing
+    colSpan: "2", // Correctly mapped even with non-standard casing
+    tabIndex: "0", // Correctly mapped
   });
 });
